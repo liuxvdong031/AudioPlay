@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_single_cycle"
+        android:title="单曲循环"
+        android:icon="@mipmap/single_cycle"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_list_loop"
+        android:title="循环播放"
+        android:icon="@mipmap/list_loop"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_shuffle_playback"
+        android:title="随机播放"
+        android:icon="@mipmap/shuffle_playback"
+        app:showAsAction="never" />
+
+</menu>
