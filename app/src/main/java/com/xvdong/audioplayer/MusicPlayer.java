@@ -175,9 +175,9 @@ public class MusicPlayer {
                     })
                     .create()
                     .show();
-            Set<String> exceptionList = SPUtils.getInstance().getStringSet("exceptionList",new HashSet<>());
+            Set<String> exceptionList = SPUtils.getInstance().getStringSet(Constants.EXCEPTION_LIST,new HashSet<>());
             exceptionList.add(String.valueOf(audioBean.getId()));
-            SPUtils.getInstance().put("exceptionList",exceptionList);
+            SPUtils.getInstance().put(Constants.EXCEPTION_LIST,exceptionList);
             mPlayException = true;
             e.printStackTrace();
             LogUtils.d(dataSource);

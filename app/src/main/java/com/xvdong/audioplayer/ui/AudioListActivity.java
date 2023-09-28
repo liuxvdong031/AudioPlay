@@ -1,5 +1,6 @@
 package com.xvdong.audioplayer.ui;
 
+import android.annotation.SuppressLint;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.view.View;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.xvdong.audioplayer.utl.Constants;
 import com.xvdong.audioplayer.utl.LxdPermissionUtils;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
@@ -74,18 +76,18 @@ public class AudioListActivity extends AppCompatActivity {
                 .create(ApiService.class)
                 .getMusicId(name);
         RetrofitClient.execute(musicId, new BlockingBaseObserver<WYAudio>() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onNext(WYAudio result) {
                 try {
                     List<WYAudio.ResultBean.SongsBean> songs = result.getResult().getSongs();
                     for (WYAudio.ResultBean.SongsBean song : songs) {
                         AudioBean audioBean = new AudioBean((long) song.getId(), song.getName(), "", "", song.getMp3Url());
-                        Set<String> exceptionList = SPUtils.getInstance().getStringSet("exceptionList", new HashSet<>());
+                        Set<String> exceptionList = SPUtils.getInstance().getStringSet(Constants.EXCEPTION_LIST, new HashSet<>());
                         if (!exceptionList.contains(String.valueOf(audioBean.getId()))){
                             mDatas.add(audioBean);
                         }
                     }
-
                     mAudioListAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
                     ToastUtils.showLong("result 解析异常: "+ e.getMessage() );
