@@ -1,5 +1,6 @@
 package com.xvdong.audioplayer.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.xvdong.audioplayer.MusicPlayer;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.ActivityAudioDetailBinding;
+import com.xvdong.audioplayer.db.AudioDatabase;
 import com.xvdong.audioplayer.http.ApiService;
 import com.xvdong.audioplayer.http.RetrofitClient;
 import com.xvdong.audioplayer.impl.DefaultOnSeekBarChangeListener;
@@ -23,13 +25,18 @@ import com.xvdong.audioplayer.model.LyricsBean;
 import com.xvdong.audioplayer.model.WYAudio;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.internal.observers.BlockingBaseObserver;
+import io.reactivex.schedulers.Schedulers;
 
 public class AudioDetailActivity extends AppCompatActivity {
 
@@ -49,7 +56,7 @@ public class AudioDetailActivity extends AppCompatActivity {
         @Override
         public void run() {
             mBinding.lrcShowView.setIndex(lyricIndex());
-            mBinding.lrcShowView.invalidate();                                    //调用后自定义View会自动调用onDraw()方法来重新绘制歌词
+            mBinding.lrcShowView.invalidate();
             handler.postDelayed(myRunnable, 300);
         }
     };
@@ -57,8 +64,10 @@ public class AudioDetailActivity extends AppCompatActivity {
     private int currentTime;
     private int duration;
     private int index;
+    private AudioDatabase mDatabase;
+    private Menu mMenu;
 
-
+    //获取歌词当前播放的行数
     public int lyricIndex() {
         int size = lyricContents.size();
         if (mMusicPlayer.isPlaying()) {
@@ -89,10 +98,19 @@ public class AudioDetailActivity extends AppCompatActivity {
     }
 
 
+
+    @SuppressLint("CheckResult")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_detail);
+        // 初始化数据库
+        AudioDatabase.getInstance(this)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(audioDatabase -> {
+                    mDatabase = audioDatabase;
+                });
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_detail);
         seekBar = mBinding.seekBar;
         handler = new Handler();
@@ -109,7 +127,27 @@ public class AudioDetailActivity extends AppCompatActivity {
             int position = bundle.getInt("position");
             mMusicPlayer = new MusicPlayer(this, audioList, position);
             mMusicPlayer.setOnLyricsListener(name -> displayLyricsSimultaneously());
-            mMusicPlayer.setOnPlayExceptionListener(() -> AudioDetailActivity.this.finish());
+            mMusicPlayer.setOnPlayListener(new MusicPlayer.setOnPlayListener() {
+                @SuppressLint("CheckResult")
+                @Override
+                public void onPlay(AudioBean audioBean) {
+                    if (mDatabase == null){
+                        Observable.just(1)
+                                .delay(300, TimeUnit.MILLISECONDS)
+                                .subscribeOn(Schedulers.computation())
+                                .subscribe(integer -> {
+                                    setCollectState(audioBean);
+                                });
+                    }else {
+                        setCollectState(audioBean);
+                    }
+                }
+
+                @Override
+                public void onPlayException() {
+                    AudioDetailActivity.this.finish();
+                }
+            });
             mMusicPlayer.play(audioList.get(position));
             handler.post(runnable);
         }
@@ -147,6 +185,21 @@ public class AudioDetailActivity extends AppCompatActivity {
                 }
             }
         });
+
+    }
+
+    @NonNull
+    private Disposable setCollectState(AudioBean audioBean) {
+        return mDatabase.mAudioDao()
+                .doesIdExist(audioBean.getId())
+                .subscribeOn(Schedulers.io()) // 在 io 线程执行查询
+                .observeOn(AndroidSchedulers.mainThread()) // 在主线程观察结果
+                .subscribe(aBoolean -> {
+                    if (aBoolean && mMenu != null) {
+                        MenuItem item = mMenu.getItem(0);
+                        item.setIcon(R.mipmap.collected);
+                    }
+                });
     }
 
 
@@ -173,7 +226,6 @@ public class AudioDetailActivity extends AppCompatActivity {
         }
 
 
-
 //        日不落  209643
 //        等你爱我  64312
 //        等爱的玫瑰  1876116226
@@ -181,7 +233,7 @@ public class AudioDetailActivity extends AppCompatActivity {
 //        天籁传奇  5234349
     }
 
-    private void getMusicId(String name){
+    private void getMusicId(String name) {
         Observable<WYAudio> musicId = RetrofitClient.getInstance()
                 .create(ApiService.class)
                 .getMusicId(name);
@@ -190,9 +242,9 @@ public class AudioDetailActivity extends AppCompatActivity {
             public void onNext(WYAudio result) {
                 try {
                     int id = result.getResult().getSongs().get(0).getId();
-                    getLyricsById(String.valueOf(id),name);
+                    getLyricsById(String.valueOf(id), name);
                 } catch (Exception e) {
-                    ToastUtils.showLong("result 解析异常: "+ e.getMessage() );
+                    ToastUtils.showLong("result 解析异常: " + e.getMessage());
                 }
             }
 
@@ -247,6 +299,7 @@ public class AudioDetailActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // 加载菜单项
+        mMenu = menu;
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu);
     }
@@ -267,15 +320,18 @@ public class AudioDetailActivity extends AppCompatActivity {
             ToastUtils.showShort("随机播放");
             mMusicPlayer.setPlayMode(MusicPlayer.MODEL_RANDOM);
             return true;
-        }else if (id == android.R.id.home){
+        } else if (id == android.R.id.home) {
             this.finish();
+        } else if (id == R.id.action_collect) {
+            mMusicPlayer.collectCurrentAudio(mDatabase.mAudioDao());
+            item.setIcon(R.mipmap.collected);
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void updateSeekBar() {
         try {
-            if (mMusicPlayer.mPlayException)return;
+            if (mMusicPlayer.mPlayException) return;
             int duration = mMusicPlayer.getDuration();
             int currentPosition = mMusicPlayer.getCurrentPosition();
             int progress = (currentPosition * 100) / duration;

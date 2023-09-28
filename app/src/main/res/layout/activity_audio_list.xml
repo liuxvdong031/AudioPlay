@@ -17,6 +17,7 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+
             <androidx.appcompat.widget.AppCompatEditText
                 android:id="@+id/et_search"
                 android:layout_width="0dp"
@@ -33,14 +34,27 @@
 
         </LinearLayout>
 
-
-        <Button
-            android:id="@+id/btn_local_search"
-            android:text="扫描本地音频文件"
+        <LinearLayout
+            android:id="@+id/ll_function"
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content">
 
+            <Button
+                android:id="@+id/btn_collect"
+                android:text="我的收藏"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
 
+            <Button
+                android:id="@+id/btn_local_search"
+                android:text="扫描本地音频文件"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/audio_list"

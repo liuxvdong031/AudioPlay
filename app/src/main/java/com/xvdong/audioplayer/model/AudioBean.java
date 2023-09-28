@@ -3,11 +3,16 @@ package com.xvdong.audioplayer.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 /**
  * Created by xvDong on 2023/9/12.
  */
 
+@Entity(tableName = "audio")
 public class AudioBean implements Parcelable {
+    @PrimaryKey
     private Long id;
     private String displayName;
     private String artist;

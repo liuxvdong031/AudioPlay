@@ -1,5 +1,6 @@
 package com.xvdong.audioplayer.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.ui.AudioDetailActivity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,10 +48,22 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
             Intent intent = new Intent(mContext, AudioDetailActivity.class);
             Bundle bundle = new Bundle();
             bundle.putParcelableArrayList("bean", mDataList);
-            bundle.putInt("position",position);
+            bundle.putInt("position", position);
             intent.putExtra("bundle", bundle);
             mContext.startActivity(intent);
         });
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void setNewData(List<AudioBean> newData) {
+        mDataList.clear();
+        mDataList.addAll(newData);
+        this.notifyDataSetChanged();
+    }
+
+    public void addData(AudioBean audioBean) {
+        mDataList.add(audioBean);
+        this.notifyItemChanged(mDataList.size() - 1);
     }
 
     @Override
@@ -58,11 +72,12 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
     }
 
     public class AudioViewHolder extends RecyclerView.ViewHolder {
-       public TextView textView;
+        public TextView textView;
 
         public AudioViewHolder(@NonNull View itemView) {
             super(itemView);
             textView = itemView.findViewById(R.id.name);
         }
     }
+
 }

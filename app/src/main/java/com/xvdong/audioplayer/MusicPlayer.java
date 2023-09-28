@@ -9,12 +9,16 @@ import android.text.TextUtils;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
+import com.xvdong.audioplayer.db.AudioDao;
 import com.xvdong.audioplayer.model.AudioBean;
+import com.xvdong.audioplayer.utl.Constants;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by xvDong on 2023/9/13.
@@ -31,6 +35,7 @@ public class MusicPlayer {
     public static final int MODEL_LOOP = 2;
     public static final int MODEL_RANDOM = 3;
     public boolean mPlayException = false;
+    private AudioBean mAudioBean;
 
     public MusicPlayer(Context context, ArrayList<AudioBean> audioList, int currentPosition) {
         if (audioList == null) throw new RuntimeException("音乐数据集不可未空!");
@@ -40,7 +45,7 @@ public class MusicPlayer {
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mMediaPlayer.setOnCompletionListener(mp -> {
-            if (!mPlayException){
+            if (!mPlayException) {
                 autoPlayNext();
             }
         });
@@ -144,6 +149,7 @@ public class MusicPlayer {
     }
 
     public void play(AudioBean audioBean) {
+        mAudioBean = audioBean;
         String dataSource = "";
         try {
             if (mMediaPlayer.isPlaying()) {
@@ -155,29 +161,33 @@ public class MusicPlayer {
             }
             if (TextUtils.isEmpty(audioBean.getPath())) {
                 dataSource = "https://music.163.com/song/media/outer/url?id=" + audioBean.getId() + ".mp3";
+                audioBean.setPath(dataSource);
                 mMediaPlayer.setDataSource(dataSource);
-            }else {
+            } else {
                 mMediaPlayer.setDataSource(mContext, Uri.parse(audioBean.getPath()));
             }
             mMediaPlayer.prepare();
             mMediaPlayer.start();
+            if (mOnPlayListener != null) {
+                mOnPlayListener.onPlay(mAudioBean);
+            }
         } catch (Exception e) {
             new AlertDialog.Builder(mContext)
                     .setMessage("抱歉,该音乐没有找到,换一首吧!")
-                    .setNegativeButton("下一曲",(dialogInterface, i) -> {
+                    .setNegativeButton("下一曲", (dialogInterface, i) -> {
                         mPlayException = false;
                         autoPlayNext();
                     })
-                    .setPositiveButton("确定",(dialogInterface, i) -> {
-                        if (mOnPlayExceptionListener != null){
-                            mOnPlayExceptionListener.onPlayException();
+                    .setPositiveButton("退出", (dialogInterface, i) -> {
+                        if (mOnPlayListener != null) {
+                            mOnPlayListener.onPlayException();
                         }
                     })
                     .create()
                     .show();
-            Set<String> exceptionList = SPUtils.getInstance().getStringSet(Constants.EXCEPTION_LIST,new HashSet<>());
+            Set<String> exceptionList = SPUtils.getInstance().getStringSet(Constants.EXCEPTION_LIST, new HashSet<>());
             exceptionList.add(String.valueOf(audioBean.getId()));
-            SPUtils.getInstance().put(Constants.EXCEPTION_LIST,exceptionList);
+            SPUtils.getInstance().put(Constants.EXCEPTION_LIST, exceptionList);
             mPlayException = true;
             e.printStackTrace();
             LogUtils.d(dataSource);
@@ -238,19 +248,27 @@ public class MusicPlayer {
         this.lyricsListener = lyricsListener;
     }
 
+    public void collectCurrentAudio(AudioDao audioDao) {
+        if (mAudioBean != null && audioDao != null) {
+            audioDao.insertAudio(mAudioBean)
+                    .subscribeOn(Schedulers.computation())
+                    .subscribe();
+        }
+    }
+
     public interface LyricsListener {
         void onNewMusicPlay(String name);
     }
 
-    private OnPlayExceptionListener mOnPlayExceptionListener;
+    private setOnPlayListener mOnPlayListener;
 
-    public interface OnPlayExceptionListener{
+    public interface setOnPlayListener {
+        void onPlay(AudioBean audioBean);
         void onPlayException();
     }
 
-
-    public void setOnPlayExceptionListener(OnPlayExceptionListener listener) {
-        this.mOnPlayExceptionListener = listener;
+    public void setOnPlayListener(setOnPlayListener listener) {
+        this.mOnPlayListener = listener;
     }
 
 }

@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_collect"
+        android:title="收藏"
+        android:icon="@mipmap/collect"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_single_cycle"
         android:title="单曲循环"
         android:icon="@mipmap/single_cycle"
