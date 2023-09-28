@@ -113,6 +113,7 @@ public class AudioListActivity extends AppCompatActivity {
             public void onNext(WYAudio result) {
                 try {
                     List<WYAudio.ResultBean.SongsBean> songs = result.getResult().getSongs();
+                    mDatas.clear();
                     for (WYAudio.ResultBean.SongsBean song : songs) {
                         AudioBean audioBean = new AudioBean((long) song.getId(), song.getName(), "", "", song.getMp3Url());
                         Set<String> exceptionList = SPUtils.getInstance().getStringSet(Constants.EXCEPTION_LIST, new HashSet<>());
@@ -120,6 +121,7 @@ public class AudioListActivity extends AppCompatActivity {
                             mDatas.add(audioBean);
                         }
                     }
+                    mAudioListAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
                     ToastUtils.showLong("result 解析异常: " + e.getMessage());
                 }

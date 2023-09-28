@@ -1,7 +1,10 @@
 package com.xvdong.audioplayer.ui;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -114,9 +117,28 @@ public class AudioDetailActivity extends AppCompatActivity {
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_detail);
         seekBar = mBinding.seekBar;
         handler = new Handler();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(mHeadsetReceiver, filter);
         initParams();
         initView();
     }
+
+    private BroadcastReceiver mHeadsetReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
+                int state = intent.getIntExtra("state", -1);
+                if (state == 0) {
+                    mMusicPlayer.pause();
+                    mBinding.play.setImageResource(R.mipmap.play);
+                } else if (state == 1) {
+                    // 耳机已插入
+                    mMusicPlayer.resume();
+                    mBinding.play.setImageResource(R.mipmap.pause);
+                }
+            }
+        }
+    };
 
 
     private void initParams() {
@@ -345,6 +367,7 @@ public class AudioDetailActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(mHeadsetReceiver);
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
