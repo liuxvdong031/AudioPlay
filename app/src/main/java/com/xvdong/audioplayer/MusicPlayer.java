@@ -8,10 +8,13 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.SPUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Created by xvDong on 2023/9/13.
@@ -172,6 +175,9 @@ public class MusicPlayer {
                     })
                     .create()
                     .show();
+            Set<String> exceptionList = SPUtils.getInstance().getStringSet("exceptionList",new HashSet<>());
+            exceptionList.add(String.valueOf(audioBean.getId()));
+            SPUtils.getInstance().put("exceptionList",exceptionList);
             mPlayException = true;
             e.printStackTrace();
             LogUtils.d(dataSource);

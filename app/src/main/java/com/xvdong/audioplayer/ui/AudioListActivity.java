@@ -7,6 +7,7 @@ import android.provider.MediaStore;
 import android.view.View;
 
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.xvdong.audioplayer.utl.LxdPermissionUtils;
 import com.xvdong.audioplayer.R;
@@ -17,7 +18,9 @@ import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.model.WYAudio;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
@@ -77,7 +80,10 @@ public class AudioListActivity extends AppCompatActivity {
                     List<WYAudio.ResultBean.SongsBean> songs = result.getResult().getSongs();
                     for (WYAudio.ResultBean.SongsBean song : songs) {
                         AudioBean audioBean = new AudioBean((long) song.getId(), song.getName(), "", "", song.getMp3Url());
-                        mDatas.add(audioBean);
+                        Set<String> exceptionList = SPUtils.getInstance().getStringSet("exceptionList", new HashSet<>());
+                        if (!exceptionList.contains(String.valueOf(audioBean.getId()))){
+                            mDatas.add(audioBean);
+                        }
                     }
 
                     mAudioListAdapter.notifyDataSetChanged();
