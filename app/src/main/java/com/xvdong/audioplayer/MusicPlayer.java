@@ -1,11 +1,13 @@
 package com.xvdong.audioplayer;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import com.blankj.utilcode.util.LogUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 
 import java.util.ArrayList;
@@ -16,8 +18,8 @@ import java.util.Random;
  */
 
 public class MusicPlayer {
-    private MediaPlayer mediaPlayer;
-    private Context context;
+    private MediaPlayer mMediaPlayer;
+    private Context mContext;
     private ArrayList<AudioBean> mAudioList;
     private int mCurrentPosition;
     private int mCurrentModel = 2;
@@ -25,16 +27,19 @@ public class MusicPlayer {
     public static final int MODEL_SINGLE = 1;
     public static final int MODEL_LOOP = 2;
     public static final int MODEL_RANDOM = 3;
+    public boolean mPlayException = false;
 
     public MusicPlayer(Context context, ArrayList<AudioBean> audioList, int currentPosition) {
         if (audioList == null) throw new RuntimeException("音乐数据集不可未空!");
-        this.context = context;
+        this.mContext = context;
         this.mAudioList = audioList;
         this.mCurrentPosition = currentPosition;
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setOnCompletionListener(mp -> {
-            autoPlayNext();
+        mMediaPlayer = new MediaPlayer();
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mMediaPlayer.setOnCompletionListener(mp -> {
+            if (!mPlayException){
+                autoPlayNext();
+            }
         });
     }
 
@@ -131,65 +136,82 @@ public class MusicPlayer {
     }
 
     private void playOther(AudioBean audioBean) {
-        mediaPlayer.reset();
+        mMediaPlayer.reset();
         play(audioBean);
     }
 
     public void play(AudioBean audioBean) {
+        String dataSource = "";
         try {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
-                mediaPlayer.reset();
+            if (mMediaPlayer.isPlaying()) {
+                mMediaPlayer.stop();
+                mMediaPlayer.reset();
             }
             if (lyricsListener != null) {
                 lyricsListener.onNewMusicPlay(audioBean.getDisplayName());
             }
             if (TextUtils.isEmpty(audioBean.getPath())) {
-                mediaPlayer.setDataSource("https://music.163.com/song/media/outer/url?id=" + audioBean.getId() + ".mp3");
+                dataSource = "https://music.163.com/song/media/outer/url?id=" + audioBean.getId() + ".mp3";
+                mMediaPlayer.setDataSource(dataSource);
             }else {
-                mediaPlayer.setDataSource(context, Uri.parse(audioBean.getPath()));
+                mMediaPlayer.setDataSource(mContext, Uri.parse(audioBean.getPath()));
             }
-            mediaPlayer.prepare();
-            mediaPlayer.start();
+            mMediaPlayer.prepare();
+            mMediaPlayer.start();
         } catch (Exception e) {
+            new AlertDialog.Builder(mContext)
+                    .setMessage("抱歉,该音乐没有找到,换一首吧!")
+                    .setNegativeButton("下一曲",(dialogInterface, i) -> {
+                        mPlayException = false;
+                        autoPlayNext();
+                    })
+                    .setPositiveButton("确定",(dialogInterface, i) -> {
+                        if (mOnPlayExceptionListener != null){
+                            mOnPlayExceptionListener.onPlayException();
+                        }
+                    })
+                    .create()
+                    .show();
+            mPlayException = true;
             e.printStackTrace();
+            LogUtils.d(dataSource);
         }
     }
 
     public void pause() {
-        if (mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
+        if (mMediaPlayer.isPlaying()) {
+            mMediaPlayer.pause();
         }
     }
 
     public void resume() {
-        if (!mediaPlayer.isPlaying()) {
-            mediaPlayer.start();
+        if (!mMediaPlayer.isPlaying()) {
+            mMediaPlayer.start();
         }
     }
 
     public void stop() {
-        mediaPlayer.stop();
-        mediaPlayer.reset();
+        mMediaPlayer.stop();
+        mMediaPlayer.reset();
     }
 
     public int getDuration() {
-        if (mediaPlayer != null) {
-            return mediaPlayer.getDuration();
+        if (mMediaPlayer != null) {
+            return mMediaPlayer.getDuration();
         }
         return 0;
     }
 
     public int getCurrentPosition() {
-        if (mediaPlayer != null) {
-            return mediaPlayer.getCurrentPosition();
+        if (mMediaPlayer != null) {
+            return mMediaPlayer.getCurrentPosition();
         }
         return 0;
     }
 
     public boolean isPlaying() {
-        if (mediaPlayer != null) {
-            return mediaPlayer.isPlaying();
+        if (mMediaPlayer != null) {
+            return mMediaPlayer.isPlaying();
         }
         return false;
     }
@@ -199,8 +221,8 @@ public class MusicPlayer {
     }
 
     public void seekTo(int newPosition) {
-        if (mediaPlayer != null) {
-            mediaPlayer.seekTo(newPosition);
+        if (mMediaPlayer != null) {
+            mMediaPlayer.seekTo(newPosition);
         }
     }
 
@@ -213,4 +235,16 @@ public class MusicPlayer {
     public interface LyricsListener {
         void onNewMusicPlay(String name);
     }
+
+    private OnPlayExceptionListener mOnPlayExceptionListener;
+
+    public interface OnPlayExceptionListener{
+        void onPlayException();
+    }
+
+
+    public void setOnPlayExceptionListener(OnPlayExceptionListener listener) {
+        this.mOnPlayExceptionListener = listener;
+    }
+
 }

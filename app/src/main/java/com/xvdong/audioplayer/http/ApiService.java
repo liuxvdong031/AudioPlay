@@ -9,7 +9,6 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
-import retrofit2.http.Url;
 
 /**
  * Created by xvDong on 2023/9/13.
@@ -31,6 +30,4 @@ public interface ApiService {
     @GET("/search")
     Observable<WYAudio> getMusicId(@Query("keywords") String keywords);
 
-    @GET
-    Observable<Object> search(@Url String url);
 }

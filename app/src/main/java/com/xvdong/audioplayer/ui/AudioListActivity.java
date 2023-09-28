@@ -8,7 +8,7 @@ import android.view.View;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
-import com.xvdong.audioplayer.LxdPermissionUtils;
+import com.xvdong.audioplayer.utl.LxdPermissionUtils;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.http.ApiService;

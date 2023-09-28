@@ -108,12 +108,8 @@ public class AudioDetailActivity extends AppCompatActivity {
             ArrayList<AudioBean> audioList = bundle.getParcelableArrayList("bean");
             int position = bundle.getInt("position");
             mMusicPlayer = new MusicPlayer(this, audioList, position);
-            mMusicPlayer.setOnLyricsListener(new MusicPlayer.LyricsListener() {
-                @Override
-                public void onNewMusicPlay(String name) {
-                    displayLyricsSimultaneously();
-                }
-            });
+            mMusicPlayer.setOnLyricsListener(name -> displayLyricsSimultaneously());
+            mMusicPlayer.setOnPlayExceptionListener(() -> AudioDetailActivity.this.finish());
             mMusicPlayer.play(audioList.get(position));
             handler.post(runnable);
         }
@@ -279,6 +275,7 @@ public class AudioDetailActivity extends AppCompatActivity {
 
     private void updateSeekBar() {
         try {
+            if (mMusicPlayer.mPlayException)return;
             int duration = mMusicPlayer.getDuration();
             int currentPosition = mMusicPlayer.getCurrentPosition();
             int progress = (currentPosition * 100) / duration;
