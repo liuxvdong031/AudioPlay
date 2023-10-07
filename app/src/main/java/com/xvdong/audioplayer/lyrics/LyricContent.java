@@ -13,19 +13,19 @@ public class LyricContent {
         this.lyricTime = lyricTime;
     }
 
-    public String getLyricString(){
+    public String getLyricString() {
         return this.lyricString;
     }
 
-    public void setLyricString(String str){
+    public void setLyricString(String str) {
         this.lyricString = str;
     }
 
-    public int getLyricTime(){
+    public int getLyricTime() {
         return this.lyricTime;
     }
 
-    public void setLyricTime(int time){
+    public void setLyricTime(int time) {
         this.lyricTime = time;
     }
 }

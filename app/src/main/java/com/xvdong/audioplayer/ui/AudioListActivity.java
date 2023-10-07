@@ -67,7 +67,7 @@ public class AudioListActivity extends AppCompatActivity {
         });
 
         mBinding.btnLocalSearch.setOnClickListener(view -> {
-            LxdPermissionUtils.requestMediaAudioPermission(new  PermissionUtils.FullCallback() {
+            LxdPermissionUtils.requestMediaAudioPermission(new PermissionUtils.FullCallback() {
                 @Override
                 public void onGranted(List<String> permissionsGranted) {
                     LogUtils.d("已经获取到了权限");
@@ -78,7 +78,7 @@ public class AudioListActivity extends AppCompatActivity {
 
                 @Override
                 public void onDenied(List<String> permissionsDeniedForever,
-                        List<String> permissionsDenied) {
+                                     List<String> permissionsDenied) {
                     ToastUtils.showShort("用户拒绝了该权限");
                 }
             });

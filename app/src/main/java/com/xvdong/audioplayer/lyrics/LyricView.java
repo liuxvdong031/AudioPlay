@@ -22,11 +22,11 @@ public class LyricView extends androidx.appcompat.widget.AppCompatTextView {
 
 
     /**
-     *     观察歌词文件发现,每句话都对应着一个时间
-     *     所以专门写一个类LyricContent.java
-     *     后面马上介绍到,来存放时间和该时间对应的歌词
-     *     然后再用一个List将很多这个类的实例包裹起来
-     *     这样就能很好的将每句歌词和他们的时间对应起来
+     * 观察歌词文件发现,每句话都对应着一个时间
+     * 所以专门写一个类LyricContent.java
+     * 后面马上介绍到,来存放时间和该时间对应的歌词
+     * 然后再用一个List将很多这个类的实例包裹起来
+     * 这样就能很好的将每句歌词和他们的时间对应起来
      */
     private List<LyricContent> myLyricList = null;        //每个LyricCOntent对应着一句话,这个List就是整个解析后的歌词文件
 
@@ -81,12 +81,12 @@ public class LyricView extends androidx.appcompat.widget.AppCompatTextView {
     }
 
     /**
-     *     onDraw()就是画歌词的主要方法了
-     *     在PlayFragment中会不停地调用
-     *     lyricView.invalidate();这个方法
-     *     此方法写在了一个Runnable的run()函数中
-     *     通过不断的给一个handler发送消息,不断的重新绘制歌词
-     *     来达到歌词同步的效果
+     * onDraw()就是画歌词的主要方法了
+     * 在PlayFragment中会不停地调用
+     * lyricView.invalidate();这个方法
+     * 此方法写在了一个Runnable的run()函数中
+     * 通过不断的给一个handler发送消息,不断的重新绘制歌词
+     * 来达到歌词同步的效果
      */
     @Override
     protected void onDraw(Canvas canvas) {

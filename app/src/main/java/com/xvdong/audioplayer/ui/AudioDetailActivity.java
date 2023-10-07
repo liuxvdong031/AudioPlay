@@ -100,8 +100,6 @@ public class AudioDetailActivity extends AppCompatActivity {
         return index;
     }
 
-
-
     @SuppressLint("CheckResult")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,11 +126,10 @@ public class AudioDetailActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
                 int state = intent.getIntExtra("state", -1);
-                if (state == 0) {
+                if (state == 0) {// 耳机已拨出
                     mMusicPlayer.pause();
                     mBinding.play.setImageResource(R.mipmap.play);
-                } else if (state == 1) {
-                    // 耳机已插入
+                } else if (state == 1) {// 耳机已插入
                     mMusicPlayer.resume();
                     mBinding.play.setImageResource(R.mipmap.pause);
                 }
@@ -153,14 +150,14 @@ public class AudioDetailActivity extends AppCompatActivity {
                 @SuppressLint("CheckResult")
                 @Override
                 public void onPlay(AudioBean audioBean) {
-                    if (mDatabase == null){
+                    if (mDatabase == null) {
                         Observable.just(1)
                                 .delay(300, TimeUnit.MILLISECONDS)
                                 .subscribeOn(Schedulers.computation())
                                 .subscribe(integer -> {
                                     setCollectState(audioBean);
                                 });
-                    }else {
+                    } else {
                         setCollectState(audioBean);
                     }
                 }
