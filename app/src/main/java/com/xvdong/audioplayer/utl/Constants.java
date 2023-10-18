@@ -6,5 +6,6 @@ package com.xvdong.audioplayer.utl;
 
 public class Constants {
     public static final String EXCEPTION_LIST = "exceptionList";
-    
+    public static final String LXD_AUDIO_PLAY = "LxdAudioPlay";
+
 }
