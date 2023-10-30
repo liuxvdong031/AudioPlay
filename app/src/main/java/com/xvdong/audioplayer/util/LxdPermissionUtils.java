@@ -1,4 +1,4 @@
-package com.xvdong.audioplayer.utl;
+package com.xvdong.audioplayer.util;
 
 import android.os.Build;
 

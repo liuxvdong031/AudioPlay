@@ -45,11 +45,12 @@
                 android:text="我的收藏"
                 android:layout_width="0dp"
                 android:layout_weight="1"
+                android:visibility="gone"
                 android:layout_height="wrap_content" />
 
             <Button
-                android:id="@+id/btn_local_search"
-                android:text="扫描本地音频文件"
+                android:id="@+id/btn_local"
+                android:text="搜索本地音乐文件"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content" />
@@ -63,7 +64,6 @@
             android:layout_marginStart="@dimen/size_2"
             android:layout_marginBottom="@dimen/size_2"
             android:overScrollMode="always"/>
-
 
     </LinearLayout>
 </layout>

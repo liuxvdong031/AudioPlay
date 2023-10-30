@@ -18,8 +18,8 @@ import com.xvdong.audioplayer.http.ApiService;
 import com.xvdong.audioplayer.http.RetrofitClient;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.model.WYAudio;
-import com.xvdong.audioplayer.utl.Constants;
-import com.xvdong.audioplayer.utl.LxdPermissionUtils;
+import com.xvdong.audioplayer.util.Constants;
+import com.xvdong.audioplayer.util.LxdPermissionUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -66,7 +66,7 @@ public class AudioListActivity extends AppCompatActivity {
             getMusicList(s);
         });
 
-        mBinding.btnLocalSearch.setOnClickListener(view -> {
+        mBinding.btnLocal.setOnClickListener(view -> {
             LxdPermissionUtils.requestMediaAudioPermission(new PermissionUtils.FullCallback() {
                 @Override
                 public void onGranted(List<String> permissionsGranted) {
@@ -86,7 +86,7 @@ public class AudioListActivity extends AppCompatActivity {
 
         mBinding.btnCollect.setOnClickListener(view -> {
             AudioDao audioDao = mDatabase.mAudioDao();
-            audioDao.getCollectAudio()
+            audioDao.getAllAudio()
                     .subscribeOn(Schedulers.io()) // 在 IO 线程执行查询操作
                     .observeOn(AndroidSchedulers.mainThread()) // 在主线程更新 UI
                     .subscribe(audioList -> {
@@ -137,10 +137,11 @@ public class AudioListActivity extends AppCompatActivity {
     public ArrayList<AudioBean> getAllAudioFiles() {
         ArrayList<AudioBean> audioFiles = new ArrayList<>();
         String[] projection = {MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.DISPLAY_NAME,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.DATA};
+                MediaStore.Audio.Media.DISPLAY_NAME,// 音乐文件标题
+                MediaStore.Audio.Media.ARTIST,// 音乐文件艺术家
+                MediaStore.Audio.Media.ALBUM,//音乐文件的标题
+                MediaStore.Audio.Media.DURATION, // 音乐文件时长
+                MediaStore.Audio.Media.DATA};//音乐文件的路径
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
         if (cursor != null) {
@@ -151,12 +152,24 @@ public class AudioListActivity extends AppCompatActivity {
                     String artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
                     String album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
                     String filePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
-                    audioFiles.add(new AudioBean(id, displayName, artist, album, filePath));
+                    AudioBean audioBean = new AudioBean(id, displayName, artist, album, filePath);
+                    int columnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
+                    if (columnIndex >= 0){
+                        int duration = cursor.getInt(columnIndex);
+                        audioBean.setDuration(duration);
+                    }
+                    audioFiles.add(audioBean);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
             cursor.close();
+            for (AudioBean audioFile : audioFiles) {
+                AudioDao audioDao = mDatabase.mAudioDao();
+                audioDao.insertAudio(audioFile)
+                        .subscribeOn(Schedulers.computation())
+                        .subscribe();
+            }
         }
         return audioFiles;
     }

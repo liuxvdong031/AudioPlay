@@ -2,11 +2,14 @@ package com.xvdong.audioplayer.ui;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,6 +29,7 @@ import com.xvdong.audioplayer.lyrics.LyricContent;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.model.LyricsBean;
 import com.xvdong.audioplayer.model.WYAudio;
+import com.xvdong.audioplayer.service.ForegroundService;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -69,6 +73,7 @@ public class AudioDetailActivity extends AppCompatActivity {
     private int index;
     private AudioDatabase mDatabase;
     private Menu mMenu;
+    private IBinder mIBinder;
 
     //获取歌词当前播放的行数
     public int lyricIndex() {
@@ -119,8 +124,21 @@ public class AudioDetailActivity extends AppCompatActivity {
         registerReceiver(mHeadsetReceiver, filter);
         initParams();
         initView();
+        Intent intent = new Intent(this, ForegroundService.class);
+        bindService(intent, new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+                mIBinder = iBinder;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+
+            }
+        }, Context.BIND_AUTO_CREATE);
     }
 
+    //监听耳机插拔的广播
     private BroadcastReceiver mHeadsetReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -152,7 +170,7 @@ public class AudioDetailActivity extends AppCompatActivity {
                 public void onPlay(AudioBean audioBean) {
                     if (mDatabase == null) {
                         Observable.just(1)
-                                .delay(300, TimeUnit.MILLISECONDS)
+                                .delay(500, TimeUnit.MILLISECONDS)
                                 .subscribeOn(Schedulers.computation())
                                 .subscribe(integer -> {
                                     setCollectState(audioBean);

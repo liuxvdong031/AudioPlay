@@ -70,5 +70,6 @@
     <color name="mediumGray">#CCD1D9</color>
     <color name="mediumGrayDark">#AAB2BD</color>
 
-
+    <color name="selected_color">#FF0000</color>
+    <color name="unselected_color">#808080</color>
 </resources>

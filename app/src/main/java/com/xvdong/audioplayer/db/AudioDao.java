@@ -18,17 +18,41 @@ import io.reactivex.Single;
 
 @Dao
 public interface AudioDao {
+
+    /**
+     * 查询id是否再数据库中存在
+     * @param id 歌曲id与Android媒体类一致
+     */
+    @Query("SELECT EXISTS(SELECT 1 FROM audio WHERE id = :id LIMIT 1)")
+    Single<Boolean> doesIdExist(long id);
     /**
      * room 插入数据 主键相同则替换
      * @param bean 实体类
-     * @return
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     Completable insertAudio(AudioBean bean);
 
+    /**
+     * 查询表中所有数据
+     * @return
+     */
     @Query("SELECT * FROM audio")
-    Observable<List<AudioBean>> getCollectAudio();
+    Observable<List<AudioBean>> getAllAudio();
 
-    @Query("SELECT EXISTS(SELECT 1 FROM audio WHERE id = :id LIMIT 1)")
-    Single<Boolean> doesIdExist(long id);
+    /**
+     * 查询所有的艺术家
+     */
+    @Query("SELECT DISTINCT artist FROM audio")
+    Observable<List<String>>  getAllArtists();
+
+    /**
+     *  根据artist查询相同artist的所有歌曲
+     * @param artistName 艺术家名称
+     */
+    @Query("SELECT * FROM audio WHERE artist = :artistName")
+    Observable<List<AudioBean>> getAudiosByArtist(String artistName);
+
+    @Query("SELECT * FROM audio WHERE isCollect = 1")
+    Observable<List<AudioBean>> getAllCollectedMusic();
+
 }

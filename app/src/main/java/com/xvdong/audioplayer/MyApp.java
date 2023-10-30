@@ -4,7 +4,7 @@ import android.app.Application;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.Utils;
-import com.xvdong.audioplayer.utl.Constants;
+import com.xvdong.audioplayer.util.Constants;
 
 /**
  * Created by xvDong on 2023/9/28.

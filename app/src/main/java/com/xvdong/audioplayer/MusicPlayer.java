@@ -11,7 +11,7 @@ import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.xvdong.audioplayer.db.AudioDao;
 import com.xvdong.audioplayer.model.AudioBean;
-import com.xvdong.audioplayer.utl.Constants;
+import com.xvdong.audioplayer.util.Constants;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -250,6 +250,7 @@ public class MusicPlayer {
 
     public void collectCurrentAudio(AudioDao audioDao) {
         if (mAudioBean != null && audioDao != null) {
+            mAudioBean.setCollect(!mAudioBean.isCollect());
             audioDao.insertAudio(mAudioBean)
                     .subscribeOn(Schedulers.computation())
                     .subscribe();

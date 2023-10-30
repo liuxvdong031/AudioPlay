@@ -14,11 +14,13 @@ import androidx.room.PrimaryKey;
 public class AudioBean implements Parcelable {
     @PrimaryKey
     private Long id;
-    private String displayName;
-    private String artist;
-    private String album;
-    private String path;
-    private String lyricsPath;
+    private String displayName; //显示名称
+    private String artist;      //艺术家
+    private String album;       //专辑
+    private String path;        //歌曲路径
+    private String lyricsPath;  //歌词
+    private int duration;      //时长
+    private boolean isCollect;  //是否收藏
 
     public AudioBean(Long id, String displayName, String artist, String album, String path) {
         this.id = id;
@@ -26,6 +28,14 @@ public class AudioBean implements Parcelable {
         this.artist = artist;
         this.album = album;
         this.path = path;
+    }
+
+    public boolean isCollect() {
+        return isCollect;
+    }
+
+    public void setCollect(boolean collect) {
+        isCollect = collect;
     }
 
     public Long getId() {
@@ -90,6 +100,14 @@ public class AudioBean implements Parcelable {
         this.lyricsPath = lyricsPath;
     }
 
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
 
     @Override
     public int describeContents() {
@@ -104,6 +122,8 @@ public class AudioBean implements Parcelable {
         dest.writeString(this.album);
         dest.writeString(this.path);
         dest.writeString(this.lyricsPath);
+        dest.writeInt(this.duration);
+        dest.writeByte(this.isCollect ? (byte) 1 : (byte) 0);
     }
 
     public void readFromParcel(Parcel source) {
@@ -113,6 +133,8 @@ public class AudioBean implements Parcelable {
         this.album = source.readString();
         this.path = source.readString();
         this.lyricsPath = source.readString();
+        this.duration = source.readInt();
+        this.isCollect = source.readByte() != 0;
     }
 
     protected AudioBean(Parcel in) {
@@ -122,6 +144,8 @@ public class AudioBean implements Parcelable {
         this.album = in.readString();
         this.path = in.readString();
         this.lyricsPath = in.readString();
+        this.duration = in.readInt();
+        this.isCollect = in.readByte() != 0;
     }
 
     public static final Creator<AudioBean> CREATOR = new Creator<AudioBean>() {

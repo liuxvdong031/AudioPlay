@@ -14,7 +14,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by xvDong on 2023/9/28.
  */
 
-@Database(entities = {AudioBean.class}, version = 1)
+@Database(entities = {AudioBean.class}, version = 1, exportSchema = false)
 public abstract class AudioDatabase extends RoomDatabase {
     public abstract AudioDao mAudioDao();
 

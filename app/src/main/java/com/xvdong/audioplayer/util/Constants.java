@@ -1,4 +1,4 @@
-package com.xvdong.audioplayer.utl;
+package com.xvdong.audioplayer.util;
 
 /**
  * Created by xvDong on 2023/9/28.

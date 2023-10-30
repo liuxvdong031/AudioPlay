@@ -8,76 +8,58 @@ import android.util.AttributeSet;
 
 import com.xvdong.audioplayer.R;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import androidx.core.content.ContextCompat;
 
 
 public class LyricView extends androidx.appcompat.widget.AppCompatTextView {
     private float width;
     private float height;
-    private Paint currentPaint;             //用来描绘当前正在播放的那句歌词
-    private Paint notCurrentPaint;          //用来描绘非当前歌词
-    private float textHeight = 50;
-    private float textSize = 35;
-    private int index = 0;                  //当前歌词的索引
-
-
-    /**
-     * 观察歌词文件发现,每句话都对应着一个时间
-     * 所以专门写一个类LyricContent.java
-     * 后面马上介绍到,来存放时间和该时间对应的歌词
-     * 然后再用一个List将很多这个类的实例包裹起来
-     * 这样就能很好的将每句歌词和他们的时间对应起来
-     */
-    private List<LyricContent> myLyricList = null;        //每个LyricCOntent对应着一句话,这个List就是整个解析后的歌词文件
-
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-
-    public void setMyLyricList(List<LyricContent> lyricList) {
-        this.myLyricList = lyricList;
-    }
-
-
-    public List<LyricContent> getMyLyricList() {
-        return this.myLyricList;
-    }
+    private float mLineOfLyricsHeight = 70;//一行歌词的高度
+    private Paint mCurrentPaint;   //用来描绘当前正在播放的那句歌词
+    private int mCurrentColor;      //当前正在播放的歌词的颜色
+    private float mCurrentTextSize = 50;
+    private Paint mOtherPaint;      //用来描绘非当前歌词
+    private float mOtherTextSize = 40;
+    private int mOtherColor;        //其他歌词的颜色
+    private int index = 0;          //当前歌词的索引
+    private List<LyricContent> myLyricList = null;        //每个LyricContent对应着一句话,这个List就是整个解析后的歌词文件
 
 
     public LyricView(Context context) {
-        super(context);
-        init();
+        this(context,null);
     }
-
 
     public LyricView(Context context, AttributeSet attributeSet) {
-        super(context, attributeSet);
-        init();
+        this(context, attributeSet,0);
     }
-
 
     public LyricView(Context context, AttributeSet attributeSet, int defSytle) {
         super(context, attributeSet, defSytle);
         init();
     }
 
-
     private void init() {
         setFocusable(true);
+        mCurrentColor = ContextCompat.getColor(this.getContext(), R.color.rainbow_red);
+        mOtherColor = ContextCompat.getColor(this.getContext(), R.color.black);
 
         //初始化画笔
-        currentPaint = new Paint();
-        currentPaint.setAntiAlias(true);
-        currentPaint.setTextAlign(Paint.Align.CENTER);
+        mCurrentPaint = new Paint();
+        mCurrentPaint.setAntiAlias(true);
+        mCurrentPaint.setTextAlign(Paint.Align.CENTER);
+        mCurrentPaint.setColor(mCurrentColor);
+        mCurrentPaint.setTextSize(mCurrentTextSize);
+        mCurrentPaint.setTypeface(Typeface.DEFAULT_BOLD);
 
-
-        notCurrentPaint = new Paint();
-        notCurrentPaint.setAntiAlias(true);
-        notCurrentPaint.setTextAlign(Paint.Align.CENTER);
-
-
+        mOtherPaint = new Paint();
+        mOtherPaint.setAntiAlias(true);
+        mOtherPaint.setTextAlign(Paint.Align.CENTER);
+        mOtherPaint.setColor(mOtherColor);
+        mOtherPaint.setTextSize(mOtherTextSize);
+        mOtherPaint.setTypeface(Typeface.DEFAULT);
     }
 
     /**
@@ -94,29 +76,21 @@ public class LyricView extends androidx.appcompat.widget.AppCompatTextView {
         if (canvas == null) {
             return;
         }
-        currentPaint.setColor(getResources().getColor(R.color.rainbow_red));
-        notCurrentPaint.setColor(getResources().getColor(R.color.black));
-
-        currentPaint.setTextSize(40);
-        currentPaint.setTypeface(Typeface.DEFAULT_BOLD);
-
-        notCurrentPaint.setTextSize(textSize);
-        notCurrentPaint.setTypeface(Typeface.DEFAULT);
         try {
             setText("");
             //画出之前的句子
             float tempY = height / 2;
             for (int i = index - 1; i >= 0; i--) {
-                tempY -= textHeight;
-                canvas.drawText(myLyricList.get(i).getLyricString(), width / 2, tempY, notCurrentPaint);
+                tempY -= mLineOfLyricsHeight;
+                canvas.drawText(myLyricList.get(i).getLyricString(), width / 2, tempY, mOtherPaint);
             }
             //画出当前的句子
-            canvas.drawText(myLyricList.get(index).getLyricString(), width / 2, height / 2, currentPaint);
+            canvas.drawText(myLyricList.get(index).getLyricString(), width / 2, height / 2, mCurrentPaint);
             //画出之后的句子
             tempY = height / 2;
             for (int i = index + 1; i < myLyricList.size(); i++) {
-                tempY += textHeight;
-                canvas.drawText(myLyricList.get(i).getLyricString(), width / 2, tempY, notCurrentPaint);
+                tempY += mLineOfLyricsHeight;
+                canvas.drawText(myLyricList.get(i).getLyricString(), width / 2, tempY, mOtherPaint);
             }
         } catch (Exception e) {
             setText("一丁点儿歌词都没找到,下载后再来找我吧.......");
@@ -129,5 +103,64 @@ public class LyricView extends androidx.appcompat.widget.AppCompatTextView {
         super.onSizeChanged(w, h, oldW, oldH);
         this.width = w;
         this.height = h;
+    }
+
+    public int getCurrentColor() {
+        return mCurrentColor;
+    }
+
+    public void setCurrentColor(int currentColor) {
+        mCurrentColor = currentColor;
+    }
+
+    public float getCurrentTextSize() {
+        return mCurrentTextSize;
+    }
+
+    public void setCurrentTextSize(float currentTextSize) {
+        mCurrentTextSize = currentTextSize;
+    }
+
+    public float getOtherTextSize() {
+        return mOtherTextSize;
+    }
+
+    public void setOtherTextSize(float otherTextSize) {
+        mOtherTextSize = otherTextSize;
+    }
+
+    public int getOtherColor() {
+        return mOtherColor;
+    }
+
+    public void setOtherColor(int otherColor) {
+        mOtherColor = otherColor;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public List<LyricContent> getMyLyricList() {
+        if (myLyricList == null) {
+            return new ArrayList<>();
+        }
+        return myLyricList;
+    }
+
+    public void setMyLyricList(List<LyricContent> myLyricList) {
+        this.myLyricList = myLyricList;
+    }
+
+    public float getLineOfLyricsHeight() {
+        return mLineOfLyricsHeight;
+    }
+
+    public void setLineOfLyricsHeight(float lineOfLyricsHeight) {
+        mLineOfLyricsHeight = lineOfLyricsHeight;
     }
 }
