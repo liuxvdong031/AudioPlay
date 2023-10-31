@@ -5,6 +5,7 @@ import com.xvdong.audioplayer.model.AudioBean;
 import java.util.List;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
@@ -20,11 +21,13 @@ import io.reactivex.Single;
 public interface AudioDao {
 
     /**
-     * 查询id是否再数据库中存在
+     * 查询id是否在数据库中存在
+     *
      * @param id 歌曲id与Android媒体类一致
      */
     @Query("SELECT EXISTS(SELECT 1 FROM audio WHERE id = :id LIMIT 1)")
     Single<Boolean> doesIdExist(long id);
+
     /**
      * room 插入数据 主键相同则替换
      * @param bean 实体类
@@ -34,6 +37,7 @@ public interface AudioDao {
 
     /**
      * 查询表中所有数据
+     *
      * @return
      */
     @Query("SELECT * FROM audio")
@@ -43,16 +47,34 @@ public interface AudioDao {
      * 查询所有的艺术家
      */
     @Query("SELECT DISTINCT artist FROM audio")
-    Observable<List<String>>  getAllArtists();
+    Observable<List<String>> getAllArtists();
 
     /**
-     *  根据artist查询相同artist的所有歌曲
+     * 根据明星查询相同artist的所有歌曲
+     *
      * @param artistName 艺术家名称
      */
     @Query("SELECT * FROM audio WHERE artist = :artistName")
     Observable<List<AudioBean>> getAudiosByArtist(String artistName);
 
+    /**
+     * 判断是否收藏
+     *
+     * @return
+     */
     @Query("SELECT * FROM audio WHERE isCollect = 1")
     Observable<List<AudioBean>> getAllCollectedMusic();
+
+    /**
+     * 删除一条数据
+     *
+     * @param audio 需要删除的数据
+     * @return
+     */
+    @Delete
+    void delete(AudioBean audio);
+
+    @Query("SELECT * FROM audio WHERE id = :id LIMIT 1")
+    Observable<AudioBean> getAudioById(Long id);
 
 }

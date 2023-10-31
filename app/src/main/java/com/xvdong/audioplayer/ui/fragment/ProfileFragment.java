@@ -1,5 +1,6 @@
-package com.xvdong.audioplayer.ui;
+package com.xvdong.audioplayer.ui.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +8,8 @@ import android.view.ViewGroup;
 
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.FragmentProfileBinding;
+import com.xvdong.audioplayer.ui.SettingActivity;
+import com.xvdong.audioplayer.util.GlideEngine;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,6 +34,14 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        GlideEngine.getInstance().displayCircleImage(R.mipmap.scarecrow, mBinding.ivAvatar);
+        initData();
     }
+
+    private void initData() {
+        mBinding.ivSetting.setOnClickListener(v -> {
+            startActivity(new Intent(getActivity(), SettingActivity.class));
+        });
+    }
+
 }

@@ -4,6 +4,9 @@ import android.os.Bundle;
 
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.ActivityMainBinding;
+import com.xvdong.audioplayer.ui.fragment.CollectionFragment;
+import com.xvdong.audioplayer.ui.fragment.MusicFragment;
+import com.xvdong.audioplayer.ui.fragment.ProfileFragment;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;

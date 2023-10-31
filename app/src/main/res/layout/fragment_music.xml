@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -10,14 +11,15 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
+        <com.hjq.bar.TitleBar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:gravity="center"
-            android:text="本地音乐"
-            android:textColor="@color/black"
-            android:textSize="18dp"
-            android:textStyle="bold" />
+            android:layout_height="46dp"
+            app:drawableSize="18dp"
+            app:leftIcon="@null"
+            app:title="本地音乐"
+            app:titleSize="18sp"
+            app:titleStyle="bold" />
 
         <RelativeLayout
             android:layout_width="match_parent"

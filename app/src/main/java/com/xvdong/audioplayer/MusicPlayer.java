@@ -250,11 +250,18 @@ public class MusicPlayer {
 
     public void collectCurrentAudio(AudioDao audioDao) {
         if (mAudioBean != null && audioDao != null) {
-            mAudioBean.setCollect(!mAudioBean.isCollect());
             audioDao.insertAudio(mAudioBean)
                     .subscribeOn(Schedulers.computation())
                     .subscribe();
         }
+    }
+
+    public AudioBean getAudioBean() {
+        return mAudioBean;
+    }
+
+    public void setAudioBean(AudioBean audioBean) {
+        mAudioBean = audioBean;
     }
 
     public interface LyricsListener {

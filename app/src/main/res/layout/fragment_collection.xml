@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -10,14 +11,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextView
-            android:text="我的收藏"
-            android:gravity="center"
-            android:textSize="18dp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
+        <com.hjq.bar.TitleBar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="60dp" />
+            android:layout_height="46dp"
+            app:drawableSize="18dp"
+            app:leftIcon="@null"
+            app:title="我的收藏"
+            app:titleSize="18sp"
+            app:titleStyle="bold" />
 
         <RelativeLayout
             android:layout_width="match_parent"

@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -29,7 +30,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LxdAudioPlayer"
         tools:targetApi="31">
-
+        <activity
+            android:name=".ui.SettingActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">
@@ -44,7 +47,7 @@
             android:exported="false" />
         <activity
             android:name=".ui.AudioListActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <service android:name=".service.ForegroundService" />
     </application>

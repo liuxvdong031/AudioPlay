@@ -1,4 +1,4 @@
-package com.xvdong.audioplayer.ui;
+package com.xvdong.audioplayer.ui.fragment;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -11,6 +11,7 @@ import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.FragmentCollectionBinding;
 import com.xvdong.audioplayer.db.AudioDatabase;
 import com.xvdong.audioplayer.model.AudioBean;
+import com.xvdong.audioplayer.ui.MainActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +83,7 @@ public class CollectionFragment extends Fragment {
         } else {
             mBinding.audioList.setVisibility(View.VISIBLE);
             mBinding.rlEmpty.setVisibility(View.GONE);
-            mAudioListAdapter = new AudioListAdapter(mActivity, (ArrayList<AudioBean>) list);
+            mAudioListAdapter = new AudioListAdapter(mActivity, (ArrayList<AudioBean>) list, mDatabase,false);
             mBinding.audioList.setLayoutManager(new LinearLayoutManager(mActivity));
             mBinding.audioList.setAdapter(mAudioListAdapter);
         }

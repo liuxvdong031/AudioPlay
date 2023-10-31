@@ -99,7 +99,7 @@ public class AudioListActivity extends AppCompatActivity {
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         mBinding.audioList.setLayoutManager(linearLayoutManager);
-        mAudioListAdapter = new AudioListAdapter(AudioListActivity.this, mDatas);
+        mAudioListAdapter = new AudioListAdapter(AudioListActivity.this, mDatas, mDatabase, false);
         mBinding.audioList.setAdapter(mAudioListAdapter);
     }
 

@@ -41,7 +41,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.internal.observers.BlockingBaseObserver;
 import io.reactivex.schedulers.Schedulers;
 
@@ -172,6 +171,7 @@ public class AudioDetailActivity extends AppCompatActivity {
                         Observable.just(1)
                                 .delay(500, TimeUnit.MILLISECONDS)
                                 .subscribeOn(Schedulers.computation())
+                                .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(integer -> {
                                     setCollectState(audioBean);
                                 });
@@ -226,19 +226,14 @@ public class AudioDetailActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private Disposable setCollectState(AudioBean audioBean) {
-        return mDatabase.mAudioDao()
-                .doesIdExist(audioBean.getId())
-                .subscribeOn(Schedulers.io()) // 在 io 线程执行查询
-                .observeOn(AndroidSchedulers.mainThread()) // 在主线程观察结果
-                .subscribe(aBoolean -> {
-                    if (aBoolean && mMenu != null) {
-                        MenuItem item = mMenu.getItem(0);
-                        item.setIcon(R.mipmap.collected);
-                    }
-                });
+    private void setCollectState(AudioBean audioBean) {
+        MenuItem item = mMenu.getItem(0);
+        if (audioBean.isCollect()){
+            item.setIcon(R.mipmap.collected);
+        }else {
+            item.setIcon(R.mipmap.collect);
+        }
     }
-
 
     private void displayLyricsSimultaneously() {
         String currentSongName = mMusicPlayer.getCurrentSongName();
@@ -360,8 +355,10 @@ public class AudioDetailActivity extends AppCompatActivity {
         } else if (id == android.R.id.home) {
             this.finish();
         } else if (id == R.id.action_collect) {
+            AudioBean audioBean = mMusicPlayer.getAudioBean();
+            audioBean.setCollect(!audioBean.isCollect());
+            setCollectState(audioBean);
             mMusicPlayer.collectCurrentAudio(mDatabase.mAudioDao());
-            item.setIcon(R.mipmap.collected);
         }
         return super.onOptionsItemSelected(item);
     }
