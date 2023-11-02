@@ -5,10 +5,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.PermissionUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hjq.bar.OnTitleBarListener;
+import com.hjq.bar.TitleBar;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.ActivityAudioListBinding;
@@ -27,8 +30,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class AudioListLocalActivity extends AppCompatActivity {
-
-    private ArrayList<AudioBean> mDatas;
 
     private ActivityAudioListBinding mBinding;
     private AudioListAdapter mAudioListAdapter;
@@ -52,15 +53,16 @@ public class AudioListLocalActivity extends AppCompatActivity {
 
     @SuppressLint({"NotifyDataSetChanged", "CheckResult"})
     private void initView() {
-        mDatas = new ArrayList<>();
+        ArrayList<AudioBean> audioBeans = new ArrayList<>();
         mBinding.btnLocal.setOnClickListener(view -> {
             LxdPermissionUtils.requestMediaAudioPermission(new PermissionUtils.FullCallback() {
                 @Override
                 public void onGranted(List<String> permissionsGranted) {
                     LogUtils.d("已经获取到了权限");
                     ArrayList<AudioBean> allAudioFiles = getAllAudioFiles();
+                    insertToDbById(allAudioFiles);
+                    mBinding.btnLocal.setVisibility(View.GONE);
                     mAudioListAdapter.setNewData(allAudioFiles);
-
                 }
 
                 @Override
@@ -70,10 +72,16 @@ public class AudioListLocalActivity extends AppCompatActivity {
                 }
             });
         });
+        mBinding.toolbar.setOnTitleBarListener(new OnTitleBarListener() {
+            @Override
+            public void onLeftClick(TitleBar titleBar) {
+                finish();
+            }
+        });
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         mBinding.audioList.setLayoutManager(linearLayoutManager);
-        mAudioListAdapter = new AudioListAdapter(AudioListLocalActivity.this, mDatas, mDatabase, false);
+        mAudioListAdapter = new AudioListAdapter(AudioListLocalActivity.this, audioBeans, mDatabase, false);
         mBinding.audioList.setAdapter(mAudioListAdapter);
     }
 
@@ -89,31 +97,38 @@ public class AudioListLocalActivity extends AppCompatActivity {
         Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                try {
-                    long id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
-                    String displayName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME));
-                    String artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
-                    String album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
-                    String filePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
-                    AudioBean audioBean = new AudioBean(id, displayName, artist, album, filePath);
-                    int columnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-                    if (columnIndex >= 0){
-                        int duration = cursor.getInt(columnIndex);
-                        audioBean.setDuration(duration);
-                    }
-                    audioFiles.add(audioBean);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
+                String displayName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME));
+                String artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+                String album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+                String filePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+                AudioBean audioBean = new AudioBean(id, displayName, artist, album, filePath);
+                int columnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
+                if (columnIndex >= 0) {
+                    int duration = cursor.getInt(columnIndex);
+                    audioBean.setDuration(duration);
                 }
+                audioFiles.add(audioBean);
             }
             cursor.close();
-            for (AudioBean audioFile : audioFiles) {
-                AudioDao audioDao = mDatabase.mAudioDao();
-                audioDao.insertAudio(audioFile)
-                        .subscribeOn(Schedulers.computation())
-                        .subscribe();
-            }
         }
         return audioFiles;
+    }
+
+    @SuppressLint("CheckResult")
+    private void insertToDbById(List<AudioBean> audioFiles) {
+        if (mDatabase != null) {
+            for (AudioBean audioFile : audioFiles) {
+                AudioDao audioDao = mDatabase.mAudioDao();
+                audioDao.doesIdExist(audioFile.getId())
+                        .subscribeOn(Schedulers.computation())
+                        .subscribe(aBoolean -> {
+                            if (!aBoolean) {
+                                audioDao.insertAudio(audioFile)
+                                        .subscribe();
+                            }
+                        });
+            }
+        }
     }
 }
