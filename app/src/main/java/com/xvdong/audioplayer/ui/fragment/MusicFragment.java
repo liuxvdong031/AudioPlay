@@ -12,7 +12,7 @@ import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.FragmentMusicBinding;
 import com.xvdong.audioplayer.db.AudioDatabase;
 import com.xvdong.audioplayer.model.AudioBean;
-import com.xvdong.audioplayer.ui.AudioListActivity;
+import com.xvdong.audioplayer.ui.AudioListLocalActivity;
 import com.xvdong.audioplayer.ui.MainActivity;
 
 import java.util.ArrayList;
@@ -95,7 +95,7 @@ public class MusicFragment extends Fragment {
 
     private void initListener() {
         mBinding.rlEmpty.setOnClickListener(v -> {
-            startActivity(new Intent(mActivity, AudioListActivity.class));
+            startActivity(new Intent(mActivity, AudioListLocalActivity.class));
         });
     }
 }

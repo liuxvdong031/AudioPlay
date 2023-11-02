@@ -60,6 +60,10 @@ public class MusicPlayer {
         mCurrentModel = model;
     }
 
+    public int getCurrentModel() {
+        return mCurrentModel;
+    }
+
     /**
      * 自动播放下一首
      */
@@ -206,9 +210,10 @@ public class MusicPlayer {
         }
     }
 
-    public void stop() {
+    //回收MediaPlayer
+    public void releaseMediaPlayer() {
         mMediaPlayer.stop();
-        mMediaPlayer.reset();
+        mMediaPlayer.release();
     }
 
     public int getDuration() {

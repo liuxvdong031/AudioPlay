@@ -8,10 +8,10 @@
     </data>
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.AudioListLocalActivity">
+        android:orientation="vertical"
+        tools:context=".ui.AudioOnLineActivity">
 
         <com.hjq.bar.TitleBar
             android:id="@+id/toolbar"
@@ -19,25 +19,30 @@
             android:layout_height="46dp"
             app:drawableSize="18dp"
             app:leftIcon="@mipmap/arrow_black_left"
-            app:title="搜索本地音乐"
+            app:title="在线搜索"
             app:titleSize="18sp"
             app:titleStyle="bold" />
 
         <LinearLayout
-            android:id="@+id/ll_function"
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/et_search"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="@dimen/size_2"
+                android:layout_weight="1"
+                android:background="@drawable/shape_et_bg" />
 
             <Button
-                android:id="@+id/btn_local"
-                android:text="开始搜索"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content" />
+                android:id="@+id/btn_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="搜索" />
 
         </LinearLayout>
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/audio_list"
             android:layout_width="match_parent"
@@ -45,6 +50,7 @@
             android:layout_marginStart="@dimen/size_2"
             android:layout_marginBottom="@dimen/size_2"
             android:overScrollMode="always"/>
+
 
     </LinearLayout>
 </layout>

@@ -2,14 +2,11 @@ package com.xvdong.audioplayer.ui;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +27,7 @@ import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.model.LyricsBean;
 import com.xvdong.audioplayer.model.WYAudio;
 import com.xvdong.audioplayer.service.ForegroundService;
+import com.xvdong.audioplayer.util.Constants;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +70,7 @@ public class AudioDetailActivity extends AppCompatActivity {
     private int index;
     private AudioDatabase mDatabase;
     private Menu mMenu;
-    private IBinder mIBinder;
+    private Intent mServiceIntent;
 
     //获取歌词当前播放的行数
     public int lyricIndex() {
@@ -123,18 +121,36 @@ public class AudioDetailActivity extends AppCompatActivity {
         registerReceiver(mHeadsetReceiver, filter);
         initParams();
         initView();
-        Intent intent = new Intent(this, ForegroundService.class);
-        bindService(intent, new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-                mIBinder = iBinder;
-            }
+    }
 
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-
-            }
-        }, Context.BIND_AUTO_CREATE);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // 处理菜单项点击事件
+        int id = item.getItemId();
+        if (id == R.id.action_single_cycle) {//单曲循环
+            ToastUtils.showShort("单曲循环");
+            mMusicPlayer.setPlayMode(MusicPlayer.MODEL_SINGLE);
+            mBinding.playMode.setImageResource(R.mipmap.single_cycle);
+            return true;
+        } else if (id == R.id.action_list_loop) {//列表循环
+            ToastUtils.showShort("列表循环");
+            mMusicPlayer.setPlayMode(MusicPlayer.MODEL_LOOP);
+            mBinding.playMode.setImageResource(R.mipmap.list_loop);
+            return true;
+        } else if (id == R.id.action_shuffle_playback) {//随机播放
+            ToastUtils.showShort("随机播放");
+            mMusicPlayer.setPlayMode(MusicPlayer.MODEL_RANDOM);
+            mBinding.playMode.setImageResource(R.mipmap.shuffle_playback);
+            return true;
+        } else if (id == android.R.id.home) {
+            this.finish();
+        } else if (id == R.id.action_collect) {
+            AudioBean audioBean = mMusicPlayer.getAudioBean();
+            audioBean.setCollect(!audioBean.isCollect());
+            setCollectState(audioBean);
+            mMusicPlayer.collectCurrentAudio(mDatabase.mAudioDao());
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     //监听耳机插拔的广播
@@ -144,7 +160,9 @@ public class AudioDetailActivity extends AppCompatActivity {
             if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
                 int state = intent.getIntExtra("state", -1);
                 if (state == 0) {// 耳机已拨出
-                    mMusicPlayer.pause();
+                    if (mMusicPlayer.isPlaying()){
+                        mMusicPlayer.pause();
+                    }
                     mBinding.play.setImageResource(R.mipmap.play);
                 } else if (state == 1) {// 耳机已插入
                     mMusicPlayer.resume();
@@ -154,11 +172,11 @@ public class AudioDetailActivity extends AppCompatActivity {
         }
     };
 
-
     private void initParams() {
         Intent intent = getIntent();
         if (intent != null) {
             Bundle bundle = intent.getBundleExtra("bundle");
+            if (bundle == null)return;
             ArrayList<AudioBean> audioList = bundle.getParcelableArrayList("bean");
             int position = bundle.getInt("position");
             mMusicPlayer = new MusicPlayer(this, audioList, position);
@@ -186,6 +204,7 @@ public class AudioDetailActivity extends AppCompatActivity {
                 }
             });
             mMusicPlayer.play(audioList.get(position));
+            initService(audioList.get(position));
             handler.post(runnable);
         }
     }
@@ -223,6 +242,32 @@ public class AudioDetailActivity extends AppCompatActivity {
             }
         });
 
+        mBinding.playMode.setOnClickListener(v -> {
+            if (mMusicPlayer != null){
+                switch (mMusicPlayer.getCurrentModel()){
+                    case MusicPlayer.MODEL_SINGLE:
+                        mMusicPlayer.setPlayMode(MusicPlayer.MODEL_LOOP);
+                        mBinding.playMode.setImageResource(R.mipmap.list_loop);
+                        break;
+                    case MusicPlayer.MODEL_LOOP:
+                        mMusicPlayer.setPlayMode(MusicPlayer.MODEL_RANDOM);
+                        mBinding.playMode.setImageResource(R.mipmap.shuffle_playback);
+                        break;
+                    case MusicPlayer.MODEL_RANDOM:
+                        mMusicPlayer.setPlayMode(MusicPlayer.MODEL_SINGLE);
+                        mBinding.playMode.setImageResource(R.mipmap.single_cycle);
+                        break;
+                }
+            }
+        });
+
+    }
+
+    private void initService(AudioBean audioBean){
+        mServiceIntent = new Intent(this, ForegroundService.class);
+        mServiceIntent.putExtra(Constants.MUSIC_NAME, "音乐播放器");
+        mServiceIntent.putExtra(Constants.MUSIC_ARTIST, "前台服务");
+        startForegroundService(mServiceIntent);
     }
 
     @NonNull
@@ -332,36 +377,11 @@ public class AudioDetailActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // 加载菜单项
         mMenu = menu;
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_play_mode, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // 处理菜单项点击事件
-        int id = item.getItemId();
-        if (id == R.id.action_single_cycle) {//单曲循环
-            ToastUtils.showShort("单曲循环");
-            mMusicPlayer.setPlayMode(MusicPlayer.MODEL_SINGLE);
-            return true;
-        } else if (id == R.id.action_list_loop) {//列表循环
-            ToastUtils.showShort("列表循环");
-            mMusicPlayer.setPlayMode(MusicPlayer.MODEL_LOOP);
-            return true;
-        } else if (id == R.id.action_shuffle_playback) {//随机播放
-            ToastUtils.showShort("随机播放");
-            mMusicPlayer.setPlayMode(MusicPlayer.MODEL_RANDOM);
-            return true;
-        } else if (id == android.R.id.home) {
-            this.finish();
-        } else if (id == R.id.action_collect) {
-            AudioBean audioBean = mMusicPlayer.getAudioBean();
-            audioBean.setCollect(!audioBean.isCollect());
-            setCollectState(audioBean);
-            mMusicPlayer.collectCurrentAudio(mDatabase.mAudioDao());
-        }
-        return super.onOptionsItemSelected(item);
-    }
+
 
     private void updateSeekBar() {
         try {
@@ -379,12 +399,15 @@ public class AudioDetailActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //停止前台服务
+        stopService(mServiceIntent);
+        //解绑广播
         unregisterReceiver(mHeadsetReceiver);
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
         if (mMusicPlayer != null) {
-            mMusicPlayer.stop();
+            mMusicPlayer.releaseMediaPlayer();
         }
     }
 

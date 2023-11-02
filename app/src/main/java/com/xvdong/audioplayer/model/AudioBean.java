@@ -62,7 +62,11 @@ public class AudioBean implements Parcelable {
         try {
             String[] parts = displayName.split(" - ");
             if (parts.length >= 2) {
-                return parts[1].substring(0, parts[1].lastIndexOf("."));
+                if (parts[1].contains(".")){
+                    return parts[1].substring(0, parts[1].lastIndexOf("."));
+                }else {
+                    return parts[1];
+                }
             } else {
                 // 如果没有正确的分隔符，则处理异常情况
                 return displayName;

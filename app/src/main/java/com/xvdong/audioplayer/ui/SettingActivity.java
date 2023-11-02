@@ -32,7 +32,10 @@ public class SettingActivity extends AppCompatActivity {
         });
 
         mBinding.searchMusic.setOnClickListener(v -> {
-            startActivity(new Intent(this, AudioListActivity.class));
+            startActivity(new Intent(this, AudioListLocalActivity.class));
+        });
+        mBinding.searchNetMusic.setOnClickListener(v -> {
+            startActivity(new Intent(this, AudioOnLineActivity.class));
         });
     }
 

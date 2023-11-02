@@ -8,37 +8,29 @@ import android.provider.MediaStore;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.PermissionUtils;
-import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
+import com.xvdong.audioplayer.databinding.ActivityAudioListBinding;
 import com.xvdong.audioplayer.db.AudioDao;
 import com.xvdong.audioplayer.db.AudioDatabase;
-import com.xvdong.audioplayer.http.ApiService;
-import com.xvdong.audioplayer.http.RetrofitClient;
 import com.xvdong.audioplayer.model.AudioBean;
-import com.xvdong.audioplayer.model.WYAudio;
-import com.xvdong.audioplayer.util.Constants;
 import com.xvdong.audioplayer.util.LxdPermissionUtils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.internal.observers.BlockingBaseObserver;
 import io.reactivex.schedulers.Schedulers;
 
-public class AudioListActivity extends AppCompatActivity {
+public class AudioListLocalActivity extends AppCompatActivity {
 
     private ArrayList<AudioBean> mDatas;
 
-    private com.xvdong.audioplayer.databinding.ActivityAudioListBinding mBinding;
+    private ActivityAudioListBinding mBinding;
     private AudioListAdapter mAudioListAdapter;
     private AudioDatabase mDatabase;
 
@@ -48,7 +40,6 @@ public class AudioListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_list);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_list);
-        initView();
         // 初始化数据库
         AudioDatabase.getInstance(this)
                 .subscribeOn(Schedulers.io())
@@ -56,16 +47,12 @@ public class AudioListActivity extends AppCompatActivity {
                 .subscribe(audioDatabase -> {
                     mDatabase = audioDatabase;
                 });
+        initView();
     }
 
     @SuppressLint({"NotifyDataSetChanged", "CheckResult"})
     private void initView() {
         mDatas = new ArrayList<>();
-        mBinding.btnSearch.setOnClickListener(view -> {
-            String s = mBinding.etSearch.getText().toString();
-            getMusicList(s);
-        });
-
         mBinding.btnLocal.setOnClickListener(view -> {
             LxdPermissionUtils.requestMediaAudioPermission(new PermissionUtils.FullCallback() {
                 @Override
@@ -84,54 +71,10 @@ public class AudioListActivity extends AppCompatActivity {
             });
         });
 
-        mBinding.btnCollect.setOnClickListener(view -> {
-            AudioDao audioDao = mDatabase.mAudioDao();
-            audioDao.getAllAudio()
-                    .subscribeOn(Schedulers.io()) // 在 IO 线程执行查询操作
-                    .observeOn(AndroidSchedulers.mainThread()) // 在主线程更新 UI
-                    .subscribe(audioList -> {
-                        // 处理查询结果并更新 UI
-                        mAudioListAdapter.setNewData(audioList);
-                    }, throwable -> {
-                        // 处理错误情况
-                    });
-        });
-
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         mBinding.audioList.setLayoutManager(linearLayoutManager);
-        mAudioListAdapter = new AudioListAdapter(AudioListActivity.this, mDatas, mDatabase, false);
+        mAudioListAdapter = new AudioListAdapter(AudioListLocalActivity.this, mDatas, mDatabase, false);
         mBinding.audioList.setAdapter(mAudioListAdapter);
-    }
-
-    private void getMusicList(String name) {
-        Observable<WYAudio> musicId = RetrofitClient.getInstance()
-                .create(ApiService.class)
-                .getMusicId(name);
-        RetrofitClient.execute(musicId, new BlockingBaseObserver<WYAudio>() {
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onNext(WYAudio result) {
-                try {
-                    List<WYAudio.ResultBean.SongsBean> songs = result.getResult().getSongs();
-                    mDatas.clear();
-                    for (WYAudio.ResultBean.SongsBean song : songs) {
-                        AudioBean audioBean = new AudioBean((long) song.getId(), song.getName(), "", "", song.getMp3Url());
-                        Set<String> exceptionList = SPUtils.getInstance().getStringSet(Constants.EXCEPTION_LIST, new HashSet<>());
-                        if (!exceptionList.contains(String.valueOf(audioBean.getId()))) {
-                            mDatas.add(audioBean);
-                        }
-                    }
-                    mAudioListAdapter.notifyDataSetChanged();
-                } catch (Exception e) {
-                    ToastUtils.showLong("result 解析异常: " + e.getMessage());
-                }
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                LogUtils.d(e.getMessage());
-            }
-        });
     }
 
     public ArrayList<AudioBean> getAllAudioFiles() {

@@ -80,7 +80,7 @@ public class WYAudio {
             }
 
             public AlbumBean getAlbum() {
-                return album;
+                return album == null? new AlbumBean():album;
             }
 
             public void setAlbum(AlbumBean album) {

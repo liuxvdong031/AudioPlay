@@ -52,7 +52,6 @@ public class RetrofitClient {
                         .log(Platform.INFO) // 打印类型
                         .request("Request") // request的Tag
                         .response("Response")// Response的Tag
-                        .addHeader("log-header", "I am the log request header.") // 添加打印头, 注意 key 和 value 都不能是中文
                         .build())
                 .build();
         retrofit = new Retrofit.Builder()
