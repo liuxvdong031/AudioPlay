@@ -50,7 +50,7 @@ public interface AudioDao {
     Observable<List<String>> getAllArtists();
 
     /**
-     * 根据明星查询相同artist的所有歌曲
+     * 根据艺术家查询该艺术家的歌曲
      *
      * @param artistName 艺术家名称
      */

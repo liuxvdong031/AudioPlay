@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.db.AudioDatabase;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.ui.AudioDetailActivity;
+import com.xvdong.audioplayer.util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,9 +71,9 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
         holder.textView.setOnClickListener(view -> {
             Intent intent = new Intent(mContext, AudioDetailActivity.class);
             Bundle bundle = new Bundle();
-            bundle.putParcelableArrayList("bean", mDataList);
-            bundle.putInt("position", position);
-            intent.putExtra("bundle", bundle);
+            bundle.putParcelableArrayList(Constants.BEAN, mDataList);
+            bundle.putInt(Constants.POSITION, position);
+            intent.putExtra(Constants.BUNDLE, bundle);
             mContext.startActivity(intent);
         });
         if (mShowAction) {
@@ -82,17 +84,26 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
             holder.delete.setVisibility(View.GONE);
         }
         holder.delete.setOnClickListener(v -> {
-            if (ContextCompat.checkSelfPermission(mContext,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
+            boolean hasPermission = false;
+            String permissionString = "";
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                hasPermission = ContextCompat.checkSelfPermission(mContext,Manifest.permission.READ_MEDIA_AUDIO)
+                        == PackageManager.PERMISSION_GRANTED;
+                permissionString = Manifest.permission.READ_MEDIA_AUDIO;
+            } else {
+                hasPermission = ContextCompat.checkSelfPermission(mContext,Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED;
+                permissionString = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+            }
+            if (!hasPermission) {
                 ActivityCompat.requestPermissions(ActivityUtils.getTopActivity(),
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        new String[]{permissionString},
                         1001);
             } else {
                 //已经拥有权限
                 new AlertDialog.Builder(mContext)
                         .setTitle("是否删除")
-                        .setMessage("删除后,本地文件将会一同删除")
+                        .setMessage("您确认删除该音频文件吗?")
                         .setPositiveButton("确定", (dialog, which) -> {
                             //删除数据库
                             if (mDatabase != null) {
@@ -104,7 +115,7 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
                                         .subscribe();
                             }
                             //删除本地文件
-                            boolean delete = FileUtils.delete(data.getPath());
+                            FileUtils.delete(data.getPath());
                             //删除item
                             mDataList.remove(data);
                             //重新刷新数据

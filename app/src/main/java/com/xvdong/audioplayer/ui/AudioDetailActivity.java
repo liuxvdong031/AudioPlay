@@ -7,13 +7,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SeekBar;
 
 import com.blankj.utilcode.util.LogUtils;
-import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.xvdong.audioplayer.MusicPlayer;
 import com.xvdong.audioplayer.R;
@@ -30,7 +31,6 @@ import com.xvdong.audioplayer.service.ForegroundService;
 import com.xvdong.audioplayer.util.Constants;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,31 +46,33 @@ public class AudioDetailActivity extends AppCompatActivity {
 
     private ActivityAudioDetailBinding mBinding;
     private MusicPlayer mMusicPlayer;
-    private SeekBar seekBar;
-    private Handler handler;
-    private final Runnable runnable = new Runnable() {
+    private ArrayList<LyricContent> lyricContents;
+    private AudioDatabase mDatabase;
+    private Intent mServiceIntent;
+    private int currentTime;
+    private int duration;
+    private int lyricIndex;
+    private Menu mMenu;
+    private final int WHAT_UPDATE_SEEK_BAR = 1;//handler 更新进度条
+    private final int WHAT_UPDATE_LYRIC = 2;//handler 更新歌词
+    private final Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
-        public void run() {
-            updateSeekBar();
-            handler.postDelayed(this, 200);
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case WHAT_UPDATE_SEEK_BAR:
+                    updateSeekBar();
+                    handler.sendEmptyMessageDelayed(WHAT_UPDATE_SEEK_BAR, 200);
+                    break;
+                case WHAT_UPDATE_LYRIC:
+                    mBinding.lrcShowView.setIndex(lyricIndex());
+                    mBinding.lrcShowView.invalidate();
+                    handler.sendEmptyMessageDelayed(WHAT_UPDATE_LYRIC, 300);
+                    break;
+            }
         }
     };
 
-    private final Runnable myRunnable = new Runnable() {
-        @Override
-        public void run() {
-            mBinding.lrcShowView.setIndex(lyricIndex());
-            mBinding.lrcShowView.invalidate();
-            handler.postDelayed(myRunnable, 300);
-        }
-    };
-    private ArrayList<LyricContent> lyricContents;
-    private int currentTime;
-    private int duration;
-    private int index;
-    private AudioDatabase mDatabase;
-    private Menu mMenu;
-    private Intent mServiceIntent;
 
     //获取歌词当前播放的行数
     public int lyricIndex() {
@@ -83,44 +85,30 @@ public class AudioDetailActivity extends AppCompatActivity {
             for (int i = 0; i < size; i++) {
                 if (i < size - 1) {
                     if (currentTime < lyricContents.get(i).getLyricTime() && i == 0) {
-                        index = i;
+                        lyricIndex = i;
                         break;
                     }
                     if (currentTime > lyricContents.get(i).getLyricTime()
                             && currentTime < lyricContents.get(i + 1).getLyricTime()) {
-                        index = i;
+                        lyricIndex = i;
                         break;
                     }
                 }
                 if (i == size - 1
                         && currentTime > lyricContents.get(i).getLyricTime()) {
-                    index = i;
+                    lyricIndex = i;
                     break;
                 }
             }
         }
-        return index;
+        return lyricIndex;
     }
 
-    @SuppressLint("CheckResult")
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_audio_detail);
-        // 初始化数据库
-        AudioDatabase.getInstance(this)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(audioDatabase -> {
-                    mDatabase = audioDatabase;
-                });
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_detail);
-        seekBar = mBinding.seekBar;
-        handler = new Handler();
-        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
-        registerReceiver(mHeadsetReceiver, filter);
-        initParams();
-        initView();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        mMenu = menu;
+        getMenuInflater().inflate(R.menu.menu_play_mode, menu);
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -153,14 +141,47 @@ public class AudioDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @SuppressLint("CheckResult")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_audio_detail);
+        // 初始化数据库
+        AudioDatabase.getInstance(this)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(audioDatabase -> {
+                    mDatabase = audioDatabase;
+                });
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_detail);
+        initForegroundService();
+        initReceiver();
+        initParams();
+        initView();
+    }
+
+    private void initForegroundService() {
+        mServiceIntent = new Intent(this, ForegroundService.class);
+        mServiceIntent.putExtra(Constants.MUSIC_NAME, "音乐播放器");
+        mServiceIntent.putExtra(Constants.MUSIC_ARTIST, "前台服务");
+        startForegroundService(mServiceIntent);
+    }
+
+
+    private void initReceiver() {
+        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(mHeadsetReceiver, filter);
+    }
+
+
     //监听耳机插拔的广播
-    private BroadcastReceiver mHeadsetReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mHeadsetReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
                 int state = intent.getIntExtra("state", -1);
                 if (state == 0) {// 耳机已拨出
-                    if (mMusicPlayer.isPlaying()){
+                    if (mMusicPlayer.isPlaying()) {
                         mMusicPlayer.pause();
                     }
                     mBinding.play.setImageResource(R.mipmap.play);
@@ -172,30 +193,21 @@ public class AudioDetailActivity extends AppCompatActivity {
         }
     };
 
+
     private void initParams() {
         Intent intent = getIntent();
         if (intent != null) {
-            Bundle bundle = intent.getBundleExtra("bundle");
-            if (bundle == null)return;
-            ArrayList<AudioBean> audioList = bundle.getParcelableArrayList("bean");
-            int position = bundle.getInt("position");
+            Bundle bundle = intent.getBundleExtra(Constants.BUNDLE);
+            if (bundle == null) return;
+            ArrayList<AudioBean> audioList = bundle.getParcelableArrayList(Constants.BEAN);
+            int position = bundle.getInt(Constants.POSITION);
             mMusicPlayer = new MusicPlayer(this, audioList, position);
-            mMusicPlayer.setOnLyricsListener(name -> displayLyricsSimultaneously());
+            mMusicPlayer.setOnLyricsListener(this::displayLyricsSimultaneously);
             mMusicPlayer.setOnPlayListener(new MusicPlayer.setOnPlayListener() {
                 @SuppressLint("CheckResult")
                 @Override
                 public void onPlay(AudioBean audioBean) {
-                    if (mDatabase == null) {
-                        Observable.just(1)
-                                .delay(500, TimeUnit.MILLISECONDS)
-                                .subscribeOn(Schedulers.computation())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(integer -> {
-                                    setCollectState(audioBean);
-                                });
-                    } else {
-                        setCollectState(audioBean);
-                    }
+                    setCollectState(audioBean);
                 }
 
                 @Override
@@ -204,8 +216,7 @@ public class AudioDetailActivity extends AppCompatActivity {
                 }
             });
             mMusicPlayer.play(audioList.get(position));
-            initService(audioList.get(position));
-            handler.post(runnable);
+            handler.sendEmptyMessage(WHAT_UPDATE_SEEK_BAR);
         }
     }
 
@@ -243,8 +254,8 @@ public class AudioDetailActivity extends AppCompatActivity {
         });
 
         mBinding.playMode.setOnClickListener(v -> {
-            if (mMusicPlayer != null){
-                switch (mMusicPlayer.getCurrentModel()){
+            if (mMusicPlayer != null) {
+                switch (mMusicPlayer.getCurrentModel()) {
                     case MusicPlayer.MODEL_SINGLE:
                         mMusicPlayer.setPlayMode(MusicPlayer.MODEL_LOOP);
                         mBinding.playMode.setImageResource(R.mipmap.list_loop);
@@ -263,63 +274,44 @@ public class AudioDetailActivity extends AppCompatActivity {
 
     }
 
-    private void initService(AudioBean audioBean){
-        mServiceIntent = new Intent(this, ForegroundService.class);
-        mServiceIntent.putExtra(Constants.MUSIC_NAME, "音乐播放器");
-        mServiceIntent.putExtra(Constants.MUSIC_ARTIST, "前台服务");
-        startForegroundService(mServiceIntent);
-    }
 
     @NonNull
     private void setCollectState(AudioBean audioBean) {
-        MenuItem item = mMenu.getItem(0);
-        if (audioBean.isCollect()){
-            item.setIcon(R.mipmap.collected);
-        }else {
-            item.setIcon(R.mipmap.collect);
-        }
-    }
-
-    private void displayLyricsSimultaneously() {
-        String currentSongName = mMusicPlayer.getCurrentSongName();
-
-        String json = SPUtils.getInstance().getString(currentSongName);
-        if (TextUtils.isEmpty(json)) {
-            getMusicId(currentSongName);
-        } else {
-            ArrayList<LyricContent> lyricsList = new ArrayList<>();
-            Pattern pattern = Pattern.compile("\\[(\\d+:\\d+\\.\\d+)\\](.*)"); // 匹配时间戳和歌词文本
-            Matcher matcher = pattern.matcher(json);
-            while (matcher.find()) {
-                String timestampStr = matcher.group(1); // 提取时间戳
-                String text = matcher.group(2).trim(); // 提取歌词文本，并去除首尾空格
-                long timestamp = parseTimestamp(timestampStr); // 将时间戳字符串转换为毫秒数
-                LyricContent lyrics = new LyricContent(text, (int) timestamp);
-                lyricsList.add(lyrics); // 将歌词对象加入列表
+        if (mMenu != null){
+            MenuItem item = mMenu.getItem(0);
+            if (audioBean.isCollect()) {
+                item.setIcon(R.mipmap.collected);
+            } else {
+                item.setIcon(R.mipmap.collect);
             }
-            lyricContents = lyricsList;
-            handler.post(myRunnable);
-            mBinding.lrcShowView.setMyLyricList(lyricsList);
         }
-
-
-//        日不落  209643
-//        等你爱我  64312
-//        等爱的玫瑰  1876116226
-//        凤凰展翅  1977187214
-//        天籁传奇  5234349
     }
 
-    private void getMusicId(String name) {
+    private void displayLyricsSimultaneously(AudioBean audioBean) {
+        String lyric = audioBean.getLyric();
+        if (TextUtils.isEmpty(lyric)){
+            if (audioBean.getWYCloudID() == 0L){
+                getWYCloudIDOnMusicName(audioBean);
+            }else {
+                getLyricsById(audioBean);
+            }
+        }else {
+            parseLyrics(lyric);
+        }
+    }
+
+    private void getWYCloudIDOnMusicName(AudioBean audioBean) {
         Observable<WYAudio> musicId = RetrofitClient.getInstance()
                 .create(ApiService.class)
-                .getMusicId(name);
+                .getMusicId(audioBean.getMusicName());
         RetrofitClient.execute(musicId, new BlockingBaseObserver<WYAudio>() {
             @Override
             public void onNext(WYAudio result) {
                 try {
+                    //弹窗列表 展示所有的歌曲 让用户选择
                     int id = result.getResult().getSongs().get(0).getId();
-                    getLyricsById(String.valueOf(id), name);
+                    audioBean.setWYCloudID(id);
+                    getLyricsById(audioBean);
                 } catch (Exception e) {
                     ToastUtils.showLong("result 解析异常: " + e.getMessage());
                 }
@@ -332,36 +324,51 @@ public class AudioDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void getLyricsById(String id, String currentSongName) {
-        Observable<LyricsBean> lyricsById = RetrofitClient
-                .getInstance()
-                .create(ApiService.class)
-                .getLyricsById(id);
-        RetrofitClient.execute(lyricsById, new BlockingBaseObserver<LyricsBean>() {
-            @Override
-            public void onNext(LyricsBean lyricsBean) {
-                String lyric = lyricsBean.getLrc().getLyric();
-                SPUtils.getInstance().put(currentSongName, lyric);
-                ArrayList<LyricContent> lyricsList = new ArrayList<>();
-                Pattern pattern = Pattern.compile("\\[(\\d+:\\d+\\.\\d+)\\](.*)"); // 匹配时间戳和歌词文本
-                Matcher matcher = pattern.matcher(lyricsBean.getLrc().getLyric());
-                while (matcher.find()) {
-                    String timestampStr = matcher.group(1); // 提取时间戳
-                    String text = matcher.group(2).trim(); // 提取歌词文本，并去除首尾空格
-                    long timestamp = parseTimestamp(timestampStr); // 将时间戳字符串转换为毫秒数
-                    LyricContent lyrics = new LyricContent(text, (int) timestamp);
-                    lyricsList.add(lyrics); // 将歌词对象加入列表
-                }
-                lyricContents = lyricsList;
-                handler.post(myRunnable);
-                mBinding.lrcShowView.setMyLyricList(lyricsList);
-            }
+    private void getLyricsById(AudioBean audioBean) {
+        RetrofitClient.execute(RetrofitClient
+                        .getInstance()
+                        .create(ApiService.class)
+                        .getLyricsById(audioBean.getWYCloudID()),
+                new BlockingBaseObserver<LyricsBean>() {
+                    @Override
+                    public void onNext(LyricsBean lyricsBean) {
+                        String lyric = lyricsBean.getLrc().getLyric();
+                        audioBean.setLyric(lyric);
+                        insertAudio(audioBean);
+                        parseLyrics(lyricsBean.getLrc().getLyric());
+                    }
 
-            @Override
-            public void onError(Throwable e) {
-                LogUtils.e(e.getMessage());
-            }
-        });
+                    @Override
+                    public void onError(Throwable e) {
+                        LogUtils.e(e.getMessage());
+                    }
+                });
+    }
+    private void parseLyrics(String lyric) {
+        ArrayList<LyricContent> lyricsList = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\[(\\d+:\\d+\\.\\d+)\\](.*)"); // 匹配时间戳和歌词文本
+        Matcher matcher = pattern.matcher(lyric);
+        while (matcher.find()) {
+            String timestampStr = matcher.group(1); // 提取时间戳
+            String text = matcher.group(2).trim(); // 提取歌词文本，并去除首尾空格
+            long timestamp = parseTimestamp(timestampStr); // 将时间戳字符串转换为毫秒数
+            LyricContent lyricContent = new LyricContent(text, (int) timestamp);
+            lyricsList.add(lyricContent); // 将歌词对象加入列表
+        }
+        lyricContents = lyricsList;
+        handler.sendEmptyMessageDelayed(WHAT_UPDATE_LYRIC, 300);
+        mBinding.lrcShowView.setMyLyricList(lyricsList);
+    }
+
+
+    @SuppressLint("CheckResult")
+    private void insertAudio(AudioBean audioBean) {
+        if (mDatabase != null) {
+            mDatabase.mAudioDao()
+                    .insertAudio(audioBean)
+                    .subscribeOn(Schedulers.computation())
+                    .subscribe();
+        }
     }
 
     // 辅助方法：将时间戳字符串转换为毫秒数
@@ -373,23 +380,13 @@ public class AudioDetailActivity extends AppCompatActivity {
         return (minute * 60 + second) * 1000 + millisecond;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // 加载菜单项
-        mMenu = menu;
-        getMenuInflater().inflate(R.menu.menu_play_mode, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-
-
     private void updateSeekBar() {
         try {
             if (mMusicPlayer.mPlayException) return;
             int duration = mMusicPlayer.getDuration();
             int currentPosition = mMusicPlayer.getCurrentPosition();
             int progress = (currentPosition * 100) / duration;
-            seekBar.setProgress(progress);
+            mBinding.seekBar.setProgress(progress);
             mBinding.toolbar.setTitle(mMusicPlayer.getCurrentSongName());
         } catch (Exception e) {
             e.printStackTrace();

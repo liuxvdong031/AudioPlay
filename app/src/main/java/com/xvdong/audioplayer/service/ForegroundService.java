@@ -44,7 +44,12 @@ public class ForegroundService extends Service {
         String musicName = intent.getStringExtra(Constants.MUSIC_NAME);
         String musicArtist = intent.getStringExtra(Constants.MUSIC_ARTIST);
         Intent nfIntent = new Intent(this, AudioDetailActivity.class);
-        PendingIntent activity = PendingIntent.getActivity(this, 1001, nfIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            pendingIntent = PendingIntent.getActivity(this, 1001, intent, PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            pendingIntent = PendingIntent.getActivity(this, 1001, nfIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
         Notification.Builder builder = null;
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
             //注意在API 26 Android要求创建Notification必须要有channelId 如果没有会抛出RemoteException异常
@@ -59,7 +64,7 @@ public class ForegroundService extends Service {
             builder = new Notification.Builder(this.getApplicationContext());
         }
         Bitmap largeBitmap = BitmapFactory.decodeResource(this.getResources(), R.mipmap.logo);
-        builder.setContentIntent(activity)
+        builder.setContentIntent(pendingIntent)
                 .setLargeIcon(largeBitmap)
                 .setContentTitle(musicName)
                 .setSmallIcon(R.mipmap.logo)
@@ -69,16 +74,6 @@ public class ForegroundService extends Service {
         notification.defaults = Notification.DEFAULT_SOUND;
         notification.flags = Notification.FLAG_AUTO_CANCEL;
         startForeground(NOTIFICATION_ID, notification);
-    }
-
-    public void updateNotification(String newTitle, String newContent) {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        Notification notification = new Notification.Builder(this, CHANNEL_ID)
-                .setContentTitle(newTitle)
-                .setContentText(newContent)
-                .setWhen(System.currentTimeMillis())
-                .build();
-        notificationManager.notify(NOTIFICATION_ID, notification);
     }
 
     @Override

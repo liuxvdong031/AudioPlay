@@ -161,7 +161,7 @@ public class MusicPlayer {
                 mMediaPlayer.reset();
             }
             if (lyricsListener != null) {
-                lyricsListener.onNewMusicPlay(audioBean.getDisplayName());
+                lyricsListener.onNewMusicPlay(audioBean);
             }
             if (TextUtils.isEmpty(audioBean.getPath())) {
                 dataSource = "https://music.163.com/song/media/outer/url?id=" + audioBean.getId() + ".mp3";
@@ -270,7 +270,7 @@ public class MusicPlayer {
     }
 
     public interface LyricsListener {
-        void onNewMusicPlay(String name);
+        void onNewMusicPlay(AudioBean audioBean);
     }
 
     private setOnPlayListener mOnPlayListener;

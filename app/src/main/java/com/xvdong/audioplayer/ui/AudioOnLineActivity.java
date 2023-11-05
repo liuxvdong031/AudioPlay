@@ -75,6 +75,7 @@ public class AudioOnLineActivity extends AppCompatActivity {
                                 artist,
                                 song.getAlbum().getName(),
                                 "https://music.163.com/song/media/outer/url?id=" + song.getId() + ".mp3");
+                        audioBean.setWYCloudID(song.getId());
                         Set<String> exceptionList = SPUtils.getInstance().getStringSet(Constants.EXCEPTION_LIST, new HashSet<>());
                         if (!exceptionList.contains(String.valueOf(audioBean.getId()))) {
                             mDatas.add(audioBean);

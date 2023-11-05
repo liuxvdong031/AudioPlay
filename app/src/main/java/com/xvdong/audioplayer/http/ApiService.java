@@ -25,7 +25,7 @@ public interface ApiService {
 
     //根据ID获取歌词
     @GET("/lyric")
-    Observable<LyricsBean> getLyricsById(@Query("id") String id);
+    Observable<LyricsBean> getLyricsById(@Query("id") Integer id);
 
     @GET("/search")
     Observable<WYAudio> getMusicId(@Query("keywords") String keywords);
