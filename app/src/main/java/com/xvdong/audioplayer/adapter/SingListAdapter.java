@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
+import com.lxj.xpopup.XPopup;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.ItemSingListBinding;
+import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.SingListBean;
 import com.xvdong.audioplayer.ui.PlaylistSongsActivity;
 import com.xvdong.audioplayer.util.Constants;
@@ -17,6 +19,7 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by xvDong on 2023/11/7.
@@ -44,12 +47,27 @@ public class SingListAdapter extends RecyclerView.Adapter<SingListAdapter.ViewHo
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SingListBean singListBean = mSingList.get(position);
-        holder.bind(singListBean);
+        holder.mBinding.ivEdit.setOnClickListener(v -> {
+            new XPopup.Builder(mContext)
+                    .asInputConfirm("修改歌单名称", "请输入新的歌单的名称。", text -> {
+                        renameSingList(text,singListBean);
+                    })
+                    .show();
+        });
         holder.mBinding.llRoot.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, PlaylistSongsActivity.class);
             intent.putExtra(Constants.BEAN, singListBean);
             mContext.startActivity(intent);
         });
+        holder.bind(singListBean);
+    }
+
+    private void renameSingList(String text, SingListBean singListBean) {
+        singListBean.setName(text);
+        DbUtils.getSingListDataBase(mContext, database -> database.mSingListDao()
+                .insertSing(singListBean)
+                .subscribeOn(Schedulers.io())
+                .subscribe());
     }
 
     @Override
