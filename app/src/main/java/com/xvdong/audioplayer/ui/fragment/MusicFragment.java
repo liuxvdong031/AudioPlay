@@ -11,6 +11,7 @@ import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.FragmentMusicBinding;
 import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.ui.AudioListLocalActivity;
 import com.xvdong.audioplayer.ui.MainActivity;
@@ -23,8 +24,6 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by xvDong on 2023/10/27.
@@ -43,12 +42,13 @@ public class MusicFragment extends Fragment {
         super.onCreate(savedInstanceState);
         mActivity = (MainActivity) getActivity();
         // 初始化数据库
-        AudioDatabase.getInstance(getActivity())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(audioDatabase -> {
-                    mDatabase = audioDatabase;
-                });
+        initDatabase();
+    }
+
+    private void initDatabase() {
+        DbUtils.getAudioDataBase(mActivity, database -> {
+            mDatabase = database;
+        });
     }
 
     @Nullable
@@ -69,11 +69,7 @@ public class MusicFragment extends Fragment {
     @SuppressLint("CheckResult")
     private void initData() {
         if (mDatabase != null) {
-            mDatabase.mAudioDao()
-                    .getAllAudio()
-                    .subscribeOn(Schedulers.computation())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(this::changeUI);
+            DbUtils.getAllAudio(mDatabase, this::changeUI);
         }else {
             mBinding.rlEmpty.postDelayed(() -> initData(),500);
         }

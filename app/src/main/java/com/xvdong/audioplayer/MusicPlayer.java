@@ -9,7 +9,8 @@ import android.text.TextUtils;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
-import com.xvdong.audioplayer.db.AudioDao;
+import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.util.Constants;
 
@@ -17,8 +18,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by xvDong on 2023/9/13.
@@ -253,11 +252,9 @@ public class MusicPlayer {
         this.lyricsListener = lyricsListener;
     }
 
-    public void collectCurrentAudio(AudioDao audioDao) {
-        if (mAudioBean != null && audioDao != null) {
-            audioDao.insertAudio(mAudioBean)
-                    .subscribeOn(Schedulers.computation())
-                    .subscribe();
+    public void collectCurrentAudio(AudioDatabase database) {
+        if (mAudioBean != null && database != null) {
+            DbUtils.insertAudio(database,mAudioBean);
         }
     }
 

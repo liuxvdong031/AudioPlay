@@ -10,6 +10,7 @@ public class Constants {
     public static final String MUSIC_NAME = "musicName";
     public static final String MUSIC_ARTIST = "musicArtist";
     public static final String BEAN = "bean";
+    public static final String DATA = "data";
     public static final String BUNDLE = "bundle";
     public static final String POSITION = "position";
 

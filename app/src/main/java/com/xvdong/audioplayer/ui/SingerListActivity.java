@@ -32,7 +32,7 @@ public class SingerListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_singer_list);
-        initDataBase();
+        initDatabase();
     }
 
     //初始化视图
@@ -47,7 +47,7 @@ public class SingerListActivity extends AppCompatActivity {
 
     //初始化数据库
     @SuppressLint("CheckResult")
-    private void initDataBase() {
+    private void initDatabase() {
         AudioDatabase.getInstance(this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -101,7 +101,7 @@ public class SingerListActivity extends AppCompatActivity {
         mBinding.rvSinger.setLayoutManager(layoutManager);
         AudioListAdapter audioListAdapter = new AudioListAdapter(this, (ArrayList<AudioBean>) list,mDatabase,false);
         mBinding.rvSinger.setAdapter(audioListAdapter);
-        mBinding.toolbar.setTitle(singer + "歌曲");
+        mBinding.toolbar.setTitle(singer);
         mBinding.toolbar.setOnTitleBarListener(new OnTitleBarListener() {
             @Override
             public void onLeftClick(TitleBar titleBar) {
@@ -110,4 +110,13 @@ public class SingerListActivity extends AppCompatActivity {
         });
     }
 
+
+    @Override
+    public void onBackPressed() {
+        if (mBinding.toolbar.getTitle().equals("歌手列表")){
+            super.onBackPressed();
+        }else {
+            initSingerAdapter();
+        }
+    }
 }

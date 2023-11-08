@@ -35,7 +35,8 @@ public class SingerAdapter extends RecyclerView.Adapter<SingerAdapter.ViewHolder
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ItemSingerBinding binding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.item_singer, parent, false);
+        ItemSingerBinding binding =
+                DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.item_singer, parent, false);
         return new ViewHolder(binding);
     }
 

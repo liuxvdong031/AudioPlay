@@ -64,6 +64,12 @@
                 android:layout_height="wrap_content"
                 android:text="歌手列表" />
 
+            <Button
+                android:id="@+id/btn_song_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="我的歌单" />
+
         </LinearLayout>
 
 

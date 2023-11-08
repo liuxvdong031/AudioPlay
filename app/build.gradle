@@ -52,6 +52,8 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:2.6.0"
     //TitleBar
     implementation 'com.github.getActivity:TitleBar:10.5'
+    //弹窗
+    implementation 'com.github.li-xiaojun:XPopup:2.9.19'
 
 }
 

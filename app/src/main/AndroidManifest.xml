@@ -35,6 +35,15 @@
         android:theme="@style/Theme.LxdAudioPlayer"
         tools:targetApi="31">
         <activity
+            android:name=".ui.AudioSelectActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.PlaylistSongsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MySingListActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.SingerListActivity"
             android:exported="false" />
         <activity

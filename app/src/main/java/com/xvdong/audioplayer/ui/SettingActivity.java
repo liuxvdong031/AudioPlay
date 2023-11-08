@@ -11,6 +11,9 @@ import com.xvdong.audioplayer.databinding.ActivitySettingBinding;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 
+/**
+ * 设置
+ */
 public class SettingActivity extends AppCompatActivity {
 
     private ActivitySettingBinding mBinding;

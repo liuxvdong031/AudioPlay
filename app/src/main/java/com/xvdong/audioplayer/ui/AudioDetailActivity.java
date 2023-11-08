@@ -20,6 +20,7 @@ import com.xvdong.audioplayer.MusicPlayer;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.ActivityAudioDetailBinding;
 import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.http.ApiService;
 import com.xvdong.audioplayer.http.RetrofitClient;
 import com.xvdong.audioplayer.impl.DefaultOnSeekBarChangeListener;
@@ -38,10 +39,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.internal.observers.BlockingBaseObserver;
-import io.reactivex.schedulers.Schedulers;
 
+/**
+ * 音乐播放界面
+ */
 public class AudioDetailActivity extends AppCompatActivity {
 
     private ActivityAudioDetailBinding mBinding;
@@ -136,7 +138,7 @@ public class AudioDetailActivity extends AppCompatActivity {
             AudioBean audioBean = mMusicPlayer.getAudioBean();
             audioBean.setCollect(!audioBean.isCollect());
             setCollectState(audioBean);
-            mMusicPlayer.collectCurrentAudio(mDatabase.mAudioDao());
+            mMusicPlayer.collectCurrentAudio(mDatabase);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -145,19 +147,16 @@ public class AudioDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_audio_detail);
-        // 初始化数据库
-        AudioDatabase.getInstance(this)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(audioDatabase -> {
-                    mDatabase = audioDatabase;
-                });
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_detail);
+        initDatabase();
         initForegroundService();
         initReceiver();
         initParams();
         initView();
+    }
+
+    private void initDatabase() {
+        DbUtils.getAudioDataBase(this, database -> mDatabase = database);
     }
 
     private void initForegroundService() {
@@ -364,10 +363,7 @@ public class AudioDetailActivity extends AppCompatActivity {
     @SuppressLint("CheckResult")
     private void insertAudio(AudioBean audioBean) {
         if (mDatabase != null) {
-            mDatabase.mAudioDao()
-                    .insertAudio(audioBean)
-                    .subscribeOn(Schedulers.computation())
-                    .subscribe();
+            DbUtils.insertAudio(mDatabase,audioBean);
         }
     }
 

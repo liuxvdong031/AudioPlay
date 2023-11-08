@@ -75,6 +75,6 @@ public interface AudioDao {
     void delete(AudioBean audio);
 
     @Query("SELECT * FROM audio WHERE id = :id LIMIT 1")
-    Observable<AudioBean> getAudioById(Long id);
+    AudioBean getAudioById(Long id);
 
 }

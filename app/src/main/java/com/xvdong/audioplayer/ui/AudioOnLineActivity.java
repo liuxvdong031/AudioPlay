@@ -27,6 +27,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import io.reactivex.Observable;
 import io.reactivex.internal.observers.BlockingBaseObserver;
 
+/**
+ * 在线搜索
+ */
 public class AudioOnLineActivity extends AppCompatActivity {
 
     private ActivityAudioOnLineBinding mBinding;

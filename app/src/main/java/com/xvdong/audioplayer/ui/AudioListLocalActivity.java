@@ -17,6 +17,7 @@ import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.ActivityAudioListBinding;
 import com.xvdong.audioplayer.db.AudioDao;
 import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.util.LxdPermissionUtils;
 
@@ -26,9 +27,11 @@ import java.util.List;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
+/**
+ * 扫描本地歌曲
+ */
 public class AudioListLocalActivity extends AppCompatActivity {
 
     private ActivityAudioListBinding mBinding;
@@ -39,16 +42,14 @@ public class AudioListLocalActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_audio_list);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_list);
-        // 初始化数据库
-        AudioDatabase.getInstance(this)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(audioDatabase -> {
-                    mDatabase = audioDatabase;
-                });
+        initDatabase();
         initView();
+    }
+
+    // 初始化数据库
+    private void initDatabase() {
+        DbUtils.getAudioDataBase(this, database -> mDatabase = database);
     }
 
     @SuppressLint({"NotifyDataSetChanged", "CheckResult"})
@@ -60,7 +61,7 @@ public class AudioListLocalActivity extends AppCompatActivity {
                 public void onGranted(List<String> permissionsGranted) {
                     LogUtils.d("已经获取到了权限");
                     ArrayList<AudioBean> allAudioFiles = getAllAudioFiles();
-                    insertToDbById(allAudioFiles);
+                    insertToDbCheckId(allAudioFiles);
                     mBinding.btnLocal.setVisibility(View.GONE);
                     mAudioListAdapter.setNewData(allAudioFiles);
                 }
@@ -116,7 +117,7 @@ public class AudioListLocalActivity extends AppCompatActivity {
     }
 
     @SuppressLint("CheckResult")
-    private void insertToDbById(List<AudioBean> audioFiles) {
+    private void insertToDbCheckId(List<AudioBean> audioFiles) {
         if (mDatabase != null) {
             for (AudioBean audioFile : audioFiles) {
                 AudioDao audioDao = mDatabase.mAudioDao();
@@ -124,8 +125,7 @@ public class AudioListLocalActivity extends AppCompatActivity {
                         .subscribeOn(Schedulers.computation())
                         .subscribe(aBoolean -> {
                             if (!aBoolean) {
-                                audioDao.insertAudio(audioFile)
-                                        .subscribe();
+                                DbUtils.insertAudio(mDatabase, audioFile);
                             }
                         });
             }

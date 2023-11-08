@@ -18,6 +18,7 @@ import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.FileUtils;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.ui.AudioDetailActivity;
 import com.xvdong.audioplayer.util.Constants;
@@ -136,11 +137,7 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
                 holder.collect.setImageResource(R.mipmap.collect);
             }
             if (mDatabase != null) {
-                mDatabase.mAudioDao()
-                        .insertAudio(data)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(Schedulers.io())
-                        .subscribe();
+                DbUtils.insertAudio(mDatabase,data);
             }
         });
 

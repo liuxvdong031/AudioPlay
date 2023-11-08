@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.FragmentProfileBinding;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.ui.MySingListActivity;
 import com.xvdong.audioplayer.ui.SettingActivity;
 import com.xvdong.audioplayer.ui.SingerListActivity;
 import com.xvdong.audioplayer.util.GlideEngine;
@@ -26,7 +26,6 @@ import androidx.fragment.app.Fragment;
 public class ProfileFragment extends Fragment {
 
     private FragmentProfileBinding mBinding;
-    private AudioDatabase mDatabase;
 
     @Nullable
     @Override
@@ -49,6 +48,9 @@ public class ProfileFragment extends Fragment {
         });
         mBinding.btnArtist.setOnClickListener(v -> {
             startActivity(new Intent(getActivity(), SingerListActivity.class));
+        });
+        mBinding.btnSongList.setOnClickListener(v -> {
+            startActivity(new Intent(getActivity(), MySingListActivity.class));
         });
     }
 
