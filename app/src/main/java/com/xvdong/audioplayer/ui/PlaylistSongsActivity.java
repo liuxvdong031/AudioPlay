@@ -63,11 +63,10 @@ public class PlaylistSongsActivity extends AppCompatActivity {
     }
 
     @SuppressLint("CheckResult")
-    private void refreshData(){
+    private void refreshData() {
         if (!TextUtils.isEmpty(mSingListBean.getSingIds())) {
             String singIds = mSingListBean.getSingIds();
-            String[] split = singIds.split(",");
-            List<String> strings = Arrays.asList(split);
+            List<String> strings = Arrays.asList(singIds.split(","));
             Observable.fromIterable(strings)
                     .map(s -> {
                         return mAudioDataBase.mAudioDao()
@@ -99,35 +98,28 @@ public class PlaylistSongsActivity extends AppCompatActivity {
             public void onRightClick(TitleBar titleBar) {
                 Intent intent = new Intent(PlaylistSongsActivity.this, AudioSelectActivity.class);
                 intent.putExtra(Constants.BEAN, bean);
-                startActivityForResult(intent, 100);
+                startActivityForResult(intent, 10010);
             }
         });
     }
 
+    @SuppressLint("CheckResult")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        ArrayList<String> stringIds = data.getStringArrayListExtra(Constants.DATA);
-        StringBuffer stringBuffer = new StringBuffer();
-        for (int i = 0; i < stringIds.size(); i++) {
-            if (i != stringIds.size() - 1) {
-                stringBuffer.append(stringIds.get(i));
-                stringBuffer.append(",");
-            } else {
-                stringBuffer.append(stringIds.get(i));
-            }
+        if (requestCode == 10010 && resultCode == 20010) {
+            ArrayList<String> stringIds = data.getStringArrayListExtra(Constants.DATA);
+            if (stringIds == null || stringIds.size() == 0) return;
+            String join = String.join(",", stringIds);
+            mSingListBean.setSingIds(join);
+            mSingListBean.setSingCount(stringIds.size());
+            DbUtils.getSingListDataBase(this, database -> {
+                database.mSingListDao()
+                        .insertSing(mSingListBean)
+                        .subscribeOn(Schedulers.computation())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(this::refreshData);
+            });
         }
-        String s = stringBuffer.toString();
-        mSingListBean.setSingIds(s);
-        mSingListBean.setSingCount(stringIds.size());
-        DbUtils.getSingListDataBase(this, database -> {
-            database.mSingListDao()
-                    .insertSing(mSingListBean)
-                    .subscribeOn(Schedulers.computation())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(() -> {
-                        refreshData();
-                    });
-        });
     }
 }
