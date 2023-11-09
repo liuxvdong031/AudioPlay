@@ -5,10 +5,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -168,8 +170,14 @@ public class AudioDetailActivity extends AppCompatActivity {
 
 
     private void initReceiver() {
+        //耳机插拔的监听
         IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        //电话的监听
+        filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
         registerReceiver(mHeadsetReceiver, filter);
+        //注册媒体的监听
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager.requestAudioFocus(audioListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
     }
 
 
@@ -177,7 +185,8 @@ public class AudioDetailActivity extends AppCompatActivity {
     private final BroadcastReceiver mHeadsetReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
                 int state = intent.getIntExtra("state", -1);
                 if (state == 0) {// 耳机已拨出
                     if (mMusicPlayer.isPlaying()) {
@@ -188,6 +197,51 @@ public class AudioDetailActivity extends AppCompatActivity {
                     mMusicPlayer.resume();
                     mBinding.play.setImageResource(R.mipmap.pause);
                 }
+            }
+
+            if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
+                String phoneState = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+                // 电话响铃，暂停音乐播放操作
+                if (phoneState != null && phoneState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+                    if (mMusicPlayer.isPlaying()) {
+                        mMusicPlayer.pause();
+                    }
+                    mBinding.play.setImageResource(R.mipmap.play);
+                    // 电话挂断，恢复音乐播放操作
+                } else if (phoneState != null && phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                    mMusicPlayer.resume();
+                    mBinding.play.setImageResource(R.mipmap.pause);
+                }
+            }
+        }
+    };
+
+    private AudioManager.OnAudioFocusChangeListener audioListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            switch (focusChange) {
+                // 获得音频焦点，可以恢复音乐播放
+                case AudioManager.AUDIOFOCUS_GAIN:
+                    mMusicPlayer.resume();
+                    mBinding.play.setImageResource(R.mipmap.pause);
+                    break;
+                // 失去音频焦点，暂停音乐播放
+                case AudioManager.AUDIOFOCUS_LOSS:
+                    if (mMusicPlayer.isPlaying()) {
+                        mMusicPlayer.pause();
+                    }
+                    mBinding.play.setImageResource(R.mipmap.play);
+                    break;
+                // 暂时失去音频焦点（短暂的），暂停音乐播放
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                    if (mMusicPlayer.isPlaying()) {
+                        mMusicPlayer.pause();
+                    }
+                    mBinding.play.setImageResource(R.mipmap.play);
+                    break;
+                // 暂时失去音频焦点，但可以继续播放，降低音量即可
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    break;
             }
         }
     };
@@ -276,7 +330,7 @@ public class AudioDetailActivity extends AppCompatActivity {
 
     @NonNull
     private void setCollectState(AudioBean audioBean) {
-        if (mMenu != null){
+        if (mMenu != null) {
             MenuItem item = mMenu.getItem(0);
             if (audioBean.isCollect()) {
                 item.setIcon(R.mipmap.collected);
@@ -288,13 +342,13 @@ public class AudioDetailActivity extends AppCompatActivity {
 
     private void displayLyricsSimultaneously(AudioBean audioBean) {
         String lyric = audioBean.getLyric();
-        if (TextUtils.isEmpty(lyric)){
-            if (audioBean.getWYCloudID() == 0L){
+        if (TextUtils.isEmpty(lyric)) {
+            if (audioBean.getWYCloudID() == 0L) {
                 getWYCloudIDOnMusicName(audioBean);
-            }else {
+            } else {
                 getLyricsById(audioBean);
             }
-        }else {
+        } else {
             parseLyrics(lyric);
         }
     }
@@ -343,6 +397,7 @@ public class AudioDetailActivity extends AppCompatActivity {
                     }
                 });
     }
+
     private void parseLyrics(String lyric) {
         ArrayList<LyricContent> lyricsList = new ArrayList<>();
         Pattern pattern = Pattern.compile("\\[(\\d+:\\d+\\.\\d+)\\](.*)"); // 匹配时间戳和歌词文本
@@ -363,7 +418,7 @@ public class AudioDetailActivity extends AppCompatActivity {
     @SuppressLint("CheckResult")
     private void insertAudio(AudioBean audioBean) {
         if (mDatabase != null) {
-            DbUtils.insertAudio(mDatabase,audioBean);
+            DbUtils.insertAudio(mDatabase, audioBean);
         }
     }
 

@@ -18,6 +18,7 @@ import com.xvdong.audioplayer.ui.AudioDetailActivity;
 import com.xvdong.audioplayer.util.Constants;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 /**
  * Created by xvDong on 2023/10/20.
@@ -50,7 +51,7 @@ public class ForegroundService extends Service {
         } else {
             pendingIntent = PendingIntent.getActivity(this, 1001, nfIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
-        Notification.Builder builder = null;
+        NotificationCompat.Builder builder = null;
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
             //注意在API 26 Android要求创建Notification必须要有channelId 如果没有会抛出RemoteException异常
             //1 获取channelId
@@ -58,10 +59,10 @@ public class ForegroundService extends Service {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "音乐播放", NotificationManager.IMPORTANCE_HIGH);
             notificationManager.createNotificationChannel(channel);
             //2 创建Notification 对象.
-            builder = new Notification.Builder(this.getApplicationContext(), channel.getId());
+            builder = new NotificationCompat.Builder(getApplicationContext(), channel.getId());
         } else {
             //3 API 26之前没有要求channel对象 创建Notification 对象.
-            builder = new Notification.Builder(this.getApplicationContext());
+            builder = new NotificationCompat.Builder(this.getApplicationContext());
         }
         Bitmap largeBitmap = BitmapFactory.decodeResource(this.getResources(), R.mipmap.logo);
         builder.setContentIntent(pendingIntent)
@@ -69,7 +70,9 @@ public class ForegroundService extends Service {
                 .setContentTitle(musicName)
                 .setSmallIcon(R.mipmap.logo)
                 .setContentText(musicArtist)
-                .setWhen(System.currentTimeMillis());
+                .setWhen(System.currentTimeMillis())
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
         Notification notification = builder.build();
         notification.defaults = Notification.DEFAULT_SOUND;
         notification.flags = Notification.FLAG_AUTO_CANCEL;
