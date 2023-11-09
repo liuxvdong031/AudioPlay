@@ -10,6 +10,7 @@ import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.FragmentCollectionBinding;
 import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.ui.MainActivity;
 
@@ -66,11 +67,7 @@ public class CollectionFragment extends Fragment {
     @SuppressLint("CheckResult")
     private void initData() {
         if (mDatabase != null) {
-            mDatabase.mAudioDao()
-                    .getAllCollectedMusic()
-                    .subscribeOn(Schedulers.computation())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(this::changeUI);
+            DbUtils.getAllCollectedMusic(mDatabase,this::changeUI);
         }else {
             mBinding.rlEmpty.postDelayed(() -> initData(),500);
         }

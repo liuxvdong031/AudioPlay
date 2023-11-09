@@ -7,14 +7,13 @@ import android.view.ViewGroup;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.ItemSingerBinding;
 import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.DbUtils;
 
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by xvDong on 2023/11/5.
@@ -64,12 +63,9 @@ public class SingerAdapter extends RecyclerView.Adapter<SingerAdapter.ViewHolder
         @SuppressLint("CheckResult")
         public void bind(AudioDatabase database, String singer) {
             mBinding.btnSingerName.setText(singer);
-            database.mAudioDao()
-                    .getAudiosByArtist(singer)
-                    .subscribeOn(Schedulers.computation())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(list -> mBinding.tvMusicCount.setText(list.size() + "首歌曲"));
-
+            DbUtils.getAudiosByArtist(database,singer,data -> {
+                mBinding.tvMusicCount.setText(data.size() + "首歌曲");
+            });
         }
     }
 

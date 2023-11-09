@@ -153,8 +153,8 @@ public class AudioDetailActivity extends AppCompatActivity {
         initDatabase();
         initForegroundService();
         initParams();
-        initReceiver();
         initView();
+        initReceiver();
     }
 
     private void initDatabase() {

@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.xvdong.audioplayer.model.AudioBean;
+import com.xvdong.audioplayer.model.SingListBean;
 
 import java.util.List;
 
@@ -46,6 +47,39 @@ public class DbUtils {
                 });
     }
 
+    @SuppressLint("CheckResult")
+    public static void getAllArtists(AudioDatabase database, @NonNull OnDataListener<List<String>> listener) {
+        database.mAudioDao()
+                .getAllArtists()
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(listener::onDataListener, throwable -> {
+                    LogUtils.e("数据库访问异常: " + throwable.getMessage());
+                });
+    }
+
+    @SuppressLint("CheckResult")
+    public static void getAudiosByArtist(AudioDatabase database,String artistName ,@NonNull OnDataListener<List<AudioBean>> listener) {
+        database.mAudioDao()
+                .getAudiosByArtist(artistName)
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(listener::onDataListener, throwable -> {
+                    LogUtils.e("数据库访问异常: " + throwable.getMessage());
+                });
+    }
+
+    @SuppressLint("CheckResult")
+    public static void getAllCollectedMusic(AudioDatabase database,@NonNull OnDataListener<List<AudioBean>> listener) {
+        database.mAudioDao()
+                .getAllCollectedMusic()
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(listener::onDataListener, throwable -> {
+                    LogUtils.e("数据库访问异常: " + throwable.getMessage());
+                });
+    }
+
     /**
      * -----------------------------------分割线,下边为歌单数据库--------------------------------------
      */
@@ -63,5 +97,23 @@ public class DbUtils {
                 });
     }
 
+    @SuppressLint("CheckResult")
+    public static void insertSingList(SingListDatabase database, SingListBean bean) {
+        database.mSingListDao()
+                .insertSingList(bean)
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
+    }
 
+    @SuppressLint("CheckResult")
+    public static void getAllPlaylists(SingListDatabase database, @NonNull OnDataListener<List<SingListBean>> listener) {
+        database.mSingListDao()
+                .getAllPlaylists()
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(listener::onDataListener,throwable -> {
+                    LogUtils.e("数据库访问异常: " + throwable.getMessage());
+                });
+    }
 }

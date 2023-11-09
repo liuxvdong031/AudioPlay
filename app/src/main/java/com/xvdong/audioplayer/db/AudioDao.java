@@ -58,7 +58,7 @@ public interface AudioDao {
     Observable<List<AudioBean>> getAudiosByArtist(String artistName);
 
     /**
-     * 判断是否收藏
+     * 获取收藏的列表
      *
      * @return
      */

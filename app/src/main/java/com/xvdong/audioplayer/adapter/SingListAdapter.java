@@ -19,7 +19,6 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by xvDong on 2023/11/7.
@@ -64,10 +63,9 @@ public class SingListAdapter extends RecyclerView.Adapter<SingListAdapter.ViewHo
 
     private void renameSingList(String text, SingListBean singListBean) {
         singListBean.setName(text);
-        DbUtils.getSingListDataBase(mContext, database -> database.mSingListDao()
-                .insertSing(singListBean)
-                .subscribeOn(Schedulers.io())
-                .subscribe());
+        DbUtils.getSingListDataBase(mContext, database -> {
+            DbUtils.insertSingList(database,singListBean);
+        });
     }
 
     @Override

@@ -114,11 +114,7 @@ public class PlaylistSongsActivity extends AppCompatActivity {
             mSingListBean.setSingIds(join);
             mSingListBean.setSingCount(stringIds.size());
             DbUtils.getSingListDataBase(this, database -> {
-                database.mSingListDao()
-                        .insertSing(mSingListBean)
-                        .subscribeOn(Schedulers.computation())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(this::refreshData);
+                DbUtils.insertSingList(database,mSingListBean);
             });
         }
     }

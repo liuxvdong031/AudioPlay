@@ -30,7 +30,7 @@ public interface SingListDao {
 
     // 插入歌单
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    Completable insertSing(SingListBean playlist);
+    Completable insertSingList(SingListBean playlist);
 
     // 更新歌单
     @Update

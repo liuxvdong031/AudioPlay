@@ -10,6 +10,7 @@ import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.adapter.SingerAdapter;
 import com.xvdong.audioplayer.databinding.ActivitySingerListBinding;
 import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 
 import java.util.ArrayList;
@@ -60,14 +61,10 @@ public class SingerListActivity extends AppCompatActivity {
     //获取所有的歌手名称
     @SuppressLint("CheckResult")
     private void initData() {
-        mDatabase.mAudioDao()
-                .getAllArtists()
-                .subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(singers -> {
-                    mSingers = singers;
-                    initSingerAdapter();
-                });
+        DbUtils.getAllArtists(mDatabase,data -> {
+            mSingers = data;
+            initSingerAdapter();
+        });
     }
 
     //初始化歌手的适配器
@@ -85,14 +82,9 @@ public class SingerListActivity extends AppCompatActivity {
     //获取歌手所有的歌曲
     @SuppressLint("CheckResult")
     private void getSingerMusics (String singer){
-        mDatabase.mAudioDao()
-                .getAudiosByArtist(singer)
-                .subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(list -> {
-                    updateAdapter(singer,list);
-                });
-
+        DbUtils.getAudiosByArtist(mDatabase,singer,data -> {
+            updateAdapter(singer,data);
+        });
     }
 
     //更新为歌曲的适配器

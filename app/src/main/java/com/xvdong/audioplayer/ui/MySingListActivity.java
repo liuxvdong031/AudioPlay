@@ -18,8 +18,6 @@ import java.util.List;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * 我的歌单
@@ -62,16 +60,11 @@ public class MySingListActivity extends AppCompatActivity {
             }
         });
 
-        mListDatabase.mSingListDao()
-                .getAllPlaylists()
-                .subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(singListBeans -> {
-                    if (singListBeans == null && singListBeans.size() == 0) {
-                    } else {
-                        initSingList(singListBeans);
-                    }
-                });
+        DbUtils.getAllPlaylists(mListDatabase, data -> {
+            if (data != null && data.size() > 0) {
+                initSingList(data);
+            }
+        });
     }
 
     /**
@@ -81,10 +74,7 @@ public class MySingListActivity extends AppCompatActivity {
      */
     private void createNewSingList(String text) {
         SingListBean bean = new SingListBean(text, System.currentTimeMillis());
-        mListDatabase.mSingListDao()
-                .insertSing(bean)
-                .subscribeOn(Schedulers.io())
-                .subscribe();
+        DbUtils.insertSingList(mListDatabase, bean);
     }
 
     private void initSingList(List<SingListBean> singListBeans) {
