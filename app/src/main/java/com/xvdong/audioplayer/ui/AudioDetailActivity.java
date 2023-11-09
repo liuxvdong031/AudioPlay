@@ -152,8 +152,8 @@ public class AudioDetailActivity extends AppCompatActivity {
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_detail);
         initDatabase();
         initForegroundService();
-        initReceiver();
         initParams();
+        initReceiver();
         initView();
     }
 
@@ -216,7 +216,7 @@ public class AudioDetailActivity extends AppCompatActivity {
         }
     };
 
-    private AudioManager.OnAudioFocusChangeListener audioListener = new AudioManager.OnAudioFocusChangeListener() {
+    private final AudioManager.OnAudioFocusChangeListener audioListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
