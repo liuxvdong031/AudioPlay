@@ -38,7 +38,6 @@ public class AudioListLocalActivity extends AppCompatActivity {
     private AudioListAdapter mAudioListAdapter;
     private AudioDatabase mDatabase;
 
-    @SuppressLint("CheckResult")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +51,6 @@ public class AudioListLocalActivity extends AppCompatActivity {
         DbUtils.getAudioDataBase(this, database -> mDatabase = database);
     }
 
-    @SuppressLint({"NotifyDataSetChanged", "CheckResult"})
     private void initView() {
         ArrayList<AudioBean> audioBeans = new ArrayList<>();
         mBinding.btnLocal.setOnClickListener(view -> {

@@ -29,6 +29,7 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
@@ -50,7 +51,6 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
         this.mDatabase = database;
         this.mShowAction = showAction;
     }
-
 
     @NonNull
     @Override
@@ -145,9 +145,13 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
 
     @SuppressLint("NotifyDataSetChanged")
     public void setNewData(List<AudioBean> newData) {
+        // 使用 DiffUtil 计算差异
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new AudioDiffCallback(mDataList, newData));
+        // 更新数据源
         mDataList.clear();
         mDataList.addAll(newData);
-        this.notifyDataSetChanged();
+        // 将差异应用到 Adapter
+        diffResult.dispatchUpdatesTo(this);
     }
 
     public void addData(AudioBean audioBean) {

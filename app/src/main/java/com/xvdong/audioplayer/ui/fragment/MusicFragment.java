@@ -82,9 +82,11 @@ public class MusicFragment extends Fragment {
         } else {
             mBinding.audioList.setVisibility(View.VISIBLE);
             mBinding.rlEmpty.setVisibility(View.GONE);
-            mAudioListAdapter = new AudioListAdapter(mActivity, (ArrayList<AudioBean>) list,mDatabase, true);
-            mBinding.audioList.setLayoutManager(new LinearLayoutManager(mActivity));
-            mBinding.audioList.setAdapter(mAudioListAdapter);
+            if (mAudioListAdapter == null){
+                mAudioListAdapter = new AudioListAdapter(mActivity, (ArrayList<AudioBean>) list,mDatabase, true);
+                mBinding.audioList.setLayoutManager(new LinearLayoutManager(mActivity));
+                mBinding.audioList.setAdapter(mAudioListAdapter);
+            }
         }
     }
 
