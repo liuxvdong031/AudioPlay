@@ -17,7 +17,6 @@ public class SingListBean implements Parcelable {
     private int singCount;  //歌曲数量
     private String description;
     private long createdAt;
-    private String singIds;//所有的歌曲id,通过,分割
 
     // 构造函数
     public SingListBean(String name, long createdAt) {
@@ -65,14 +64,6 @@ public class SingListBean implements Parcelable {
         this.createdAt = createdAt;
     }
 
-    public String getSingIds() {
-        return singIds == null ? "" : singIds;
-    }
-
-    public void setSingIds(String singIds) {
-        this.singIds = singIds;
-    }
-
 
     @Override
     public int describeContents() {
@@ -86,7 +77,6 @@ public class SingListBean implements Parcelable {
         dest.writeInt(this.singCount);
         dest.writeString(this.description);
         dest.writeLong(this.createdAt);
-        dest.writeString(this.singIds);
     }
 
     public void readFromParcel(Parcel source) {
@@ -95,7 +85,6 @@ public class SingListBean implements Parcelable {
         this.singCount = source.readInt();
         this.description = source.readString();
         this.createdAt = source.readLong();
-        this.singIds = source.readString();
     }
 
     protected SingListBean(Parcel in) {
@@ -104,7 +93,6 @@ public class SingListBean implements Parcelable {
         this.singCount = in.readInt();
         this.description = in.readString();
         this.createdAt = in.readLong();
-        this.singIds = in.readString();
     }
 
     public static final Creator<SingListBean> CREATOR = new Creator<SingListBean>() {

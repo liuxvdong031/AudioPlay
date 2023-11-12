@@ -2,6 +2,8 @@ package com.xvdong.audioplayer.db;
 
 import android.content.Context;
 
+import com.xvdong.audioplayer.model.AudioBean;
+import com.xvdong.audioplayer.model.Relationship;
 import com.xvdong.audioplayer.model.SingListBean;
 
 import androidx.room.Database;
@@ -11,25 +13,26 @@ import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Created by xvDong on 2023/9/28.
+ * Created by xvDong on 2023/11/12.
  */
-
-@Database(entities = {SingListBean.class}, version = 1, exportSchema = false)
-public abstract class SingListDatabase extends RoomDatabase {
+@Database(entities = {AudioBean.class, SingListBean.class,Relationship.class}, version = 1, exportSchema = false)
+public abstract class AppDataBase extends RoomDatabase {
+    public abstract RelationshipDao mRelationshipDao();
+    public abstract AudioDao mAudioDao();
     public abstract SingListDao mSingListDao();
-
-    private static SingListDatabase INSTANCE;
+    private static AppDataBase INSTANCE;
     private static final Object sLock = new Object();
 
-    public static Single<SingListDatabase> getInstance(final Context context) {
+    public static Single<AppDataBase> getInstance(final Context context) {
         return Single.fromCallable(() -> {
             synchronized (sLock) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            SingListDatabase.class, "SingList").build();
+                            AppDataBase.class, "lxdAudioPlay").build();
                 }
                 return INSTANCE;
             }
         }).subscribeOn(Schedulers.io());
     }
+
 }

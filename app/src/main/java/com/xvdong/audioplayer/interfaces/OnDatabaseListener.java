@@ -1,4 +1,4 @@
-package com.xvdong.audioplayer.db;
+package com.xvdong.audioplayer.interfaces;
 
 import androidx.room.RoomDatabase;
 

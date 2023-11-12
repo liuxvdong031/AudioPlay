@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SeekBar;
@@ -21,7 +22,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.xvdong.audioplayer.MusicPlayer;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.ActivityAudioDetailBinding;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.http.ApiService;
 import com.xvdong.audioplayer.http.RetrofitClient;
@@ -51,7 +52,7 @@ public class AudioDetailActivity extends AppCompatActivity {
     private ActivityAudioDetailBinding mBinding;
     private MusicPlayer mMusicPlayer;
     private ArrayList<LyricContent> lyricContents;
-    private AudioDatabase mDatabase;
+    private AppDataBase mDatabase;
     private Intent mServiceIntent;
     private int currentTime;
     private int duration;
@@ -158,7 +159,7 @@ public class AudioDetailActivity extends AppCompatActivity {
     }
 
     private void initDatabase() {
-        DbUtils.getAudioDataBase(this, database -> mDatabase = database);
+        DbUtils.getAppDataBase(this, database -> mDatabase = database);
     }
 
     private void initForegroundService() {
@@ -278,7 +279,7 @@ public class AudioDetailActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mBinding.pre.setOnClickListener(view -> {
-            mMusicPlayer.pre();
+            mMusicPlayer.previous();
         });
 
         mBinding.play.setOnClickListener(view -> {
@@ -456,6 +457,31 @@ public class AudioDetailActivity extends AppCompatActivity {
         }
         if (mMusicPlayer != null) {
             mMusicPlayer.releaseMediaPlayer();
+        }
+    }
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_HEADSETHOOK:
+                ToastUtils.showShort("keyEvent: KEYCODE_HEADSETHOOK  " + "keyCode = "+ keyCode);
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE://暂停
+                if (mMusicPlayer.isPlaying()){
+                    mMusicPlayer.pause();
+                }else {
+                    mMusicPlayer.resume();
+                }
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_PREVIOUS://上一曲
+                mMusicPlayer.next();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_NEXT://下一曲
+                mMusicPlayer.previous();
+                return true;
+            default:
+                return super.onKeyDown(keyCode, event);
         }
     }
 

@@ -15,8 +15,8 @@ import com.hjq.bar.TitleBar;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.ActivityAudioListBinding;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.AudioDao;
-import com.xvdong.audioplayer.db.AudioDatabase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.util.LxdPermissionUtils;
@@ -36,7 +36,7 @@ public class AudioListLocalActivity extends AppCompatActivity {
 
     private ActivityAudioListBinding mBinding;
     private AudioListAdapter mAudioListAdapter;
-    private AudioDatabase mDatabase;
+    private AppDataBase mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +48,7 @@ public class AudioListLocalActivity extends AppCompatActivity {
 
     // 初始化数据库
     private void initDatabase() {
-        DbUtils.getAudioDataBase(this, database -> mDatabase = database);
+        DbUtils.getAppDataBase(this, database -> mDatabase = database);
     }
 
     private void initView() {

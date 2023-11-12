@@ -2,13 +2,12 @@ package com.xvdong.audioplayer.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 
 import com.blankj.utilcode.util.ToastUtils;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioSelectAdapter;
 import com.xvdong.audioplayer.databinding.ActivityAudioSelectMainBinding;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.model.SingListBean;
@@ -27,7 +26,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 public class AudioSelectActivity extends AppCompatActivity {
 
     private ActivityAudioSelectMainBinding mBinding;
-    private AudioDatabase mAudioDatabase;
+    private AppDataBase mAppDataBase;
     private AudioSelectAdapter mAudioSelectAdapter;
 
     @Override
@@ -40,18 +39,14 @@ public class AudioSelectActivity extends AppCompatActivity {
 
     private void initListener() {
         mBinding.btnSubmit.setOnClickListener(v -> {
-            if (mAudioSelectAdapter != null){
+            if (mAudioSelectAdapter != null) {
                 Intent intent = new Intent();
-                ArrayList<Long> selectedId = (ArrayList<Long>) mAudioSelectAdapter.getSelectedId();
-                ArrayList<String> stringIds = new ArrayList<>();
-                if (selectedId.size() > 0){
-                    for (Long aLong : selectedId) {
-                        stringIds.add(String.valueOf(aLong));
-                    }
-                    intent.putExtra(Constants.DATA,stringIds);
-                    setResult(20010,intent);
+                ArrayList<AudioBean> selectedAudios = (ArrayList<AudioBean>) mAudioSelectAdapter.getSelectedAudios();
+                if (selectedAudios.size() > 0) {
+                    intent.putExtra(Constants.DATA, selectedAudios);
+                    setResult(20010, intent);
                     finish();
-                }else {
+                } else {
                     ToastUtils.showShort("请选择音乐");
                 }
             }
@@ -59,33 +54,26 @@ public class AudioSelectActivity extends AppCompatActivity {
     }
 
     private void initDatabase() {
-        DbUtils.getAudioDataBase(this,database -> {
-            mAudioDatabase = database;
+        DbUtils.getAppDataBase(this, database -> {
+            mAppDataBase = database;
             initData();
         });
     }
 
     private void initData() {
-        DbUtils.getAllAudio(mAudioDatabase, this::initRecycleView);
+        DbUtils.getAllAudio(mAppDataBase, this::initRecycleView);
     }
 
-    private void initRecycleView(List<AudioBean> data) {
+    private void initRecycleView(List<AudioBean> allAudioBeans) {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mBinding.rvAudioList.setLayoutManager(layoutManager);
         Intent intent = getIntent();
-        if (intent != null){
-            SingListBean singListBean =  intent.getParcelableExtra(Constants.BEAN);
-            String singIds = singListBean.getSingIds();
-            ArrayList<Long> list = new ArrayList<>();
-            if (!TextUtils.isEmpty(singIds)){
-                String[] split = singIds.split(",");
-                for (String s : split) {
-                    long id = Long.parseLong(s);
-                    list.add(id);
-                }
-            }
-            mAudioSelectAdapter = new AudioSelectAdapter(this, data, list);
-            mBinding.rvAudioList.setAdapter(mAudioSelectAdapter);
+        if (intent != null) {
+            SingListBean singListBean = intent.getParcelableExtra(Constants.BEAN);
+            DbUtils.getAudiosBySingList(mAppDataBase, singListBean.getId(), singListData -> {
+                mAudioSelectAdapter = new AudioSelectAdapter(this, allAudioBeans, singListData);
+                mBinding.rvAudioList.setAdapter(mAudioSelectAdapter);
+            });
         }
 
     }

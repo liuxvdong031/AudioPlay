@@ -9,7 +9,7 @@ import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.adapter.SingerAdapter;
 import com.xvdong.audioplayer.databinding.ActivitySingerListBinding;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 
@@ -20,13 +20,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 public class SingerListActivity extends AppCompatActivity {
 
     private ActivitySingerListBinding mBinding;
-    private AudioDatabase mDatabase;
+    private AppDataBase mDatabase;
     private List<String> mSingers;
 
     @Override
@@ -49,13 +47,10 @@ public class SingerListActivity extends AppCompatActivity {
     //初始化数据库
     @SuppressLint("CheckResult")
     private void initDatabase() {
-        AudioDatabase.getInstance(this)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(audioDatabase -> {
-                    mDatabase = audioDatabase;
-                    initData();
-                });
+        DbUtils.getAppDataBase(this, database -> {
+            mDatabase = database;
+            initData();
+        });
     }
 
     //获取所有的歌手名称

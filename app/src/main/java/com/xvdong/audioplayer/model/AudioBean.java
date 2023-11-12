@@ -3,6 +3,8 @@ package com.xvdong.audioplayer.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Objects;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -24,6 +26,19 @@ public class AudioBean implements Parcelable {
     private String lyric;  //歌词
     private int duration;      //时长
     private boolean isCollect;  //是否收藏
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AudioBean)) return false;
+        AudioBean audioBean = (AudioBean) o;
+        return Objects.equals(getId(), audioBean.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
+    }
 
     public AudioBean(Long id, String displayName, String artist, String album, String path) {
         this.id = id;

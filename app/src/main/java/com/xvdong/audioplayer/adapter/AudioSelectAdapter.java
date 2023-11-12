@@ -22,12 +22,12 @@ import androidx.recyclerview.widget.RecyclerView;
 public class AudioSelectAdapter extends RecyclerView.Adapter<AudioSelectAdapter.ViewHolder> {
     private Context mContext;
     private List<AudioBean> mAudioBeans;
-    private List<Long> mSelectedId;
+    private List<AudioBean> mSelectedAudios;
 
-    public AudioSelectAdapter(Context context, List<AudioBean> list, List<Long> selectedId) {
+    public AudioSelectAdapter(Context context, List<AudioBean> list, List<AudioBean> selectedId) {
         mContext = context;
         mAudioBeans = list;
-        mSelectedId = selectedId;
+        mSelectedAudios = selectedId;
     }
 
     @NonNull
@@ -49,11 +49,11 @@ public class AudioSelectAdapter extends RecyclerView.Adapter<AudioSelectAdapter.
         return mAudioBeans.size();
     }
 
-    public List<Long> getSelectedId() {
-        if (mSelectedId == null) {
+    public List<AudioBean> getSelectedAudios() {
+        if (mSelectedAudios == null) {
             return new ArrayList<>();
         }
-        return mSelectedId;
+        return mSelectedAudios;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -67,8 +67,7 @@ public class AudioSelectAdapter extends RecyclerView.Adapter<AudioSelectAdapter.
 
         public void bind(AudioBean audioBean) {
             mBinding.setBean(audioBean);
-            Long id = audioBean.getId();
-            if (mSelectedId.contains(id)) {
+            if (mSelectedAudios.contains(audioBean)) {
                 selected = true;
                 mBinding.ivSelectState.setImageResource(R.mipmap.select_selected);
             }
@@ -76,11 +75,11 @@ public class AudioSelectAdapter extends RecyclerView.Adapter<AudioSelectAdapter.
                 if (selected) {
                     selected = false;
                     mBinding.ivSelectState.setImageResource(R.mipmap.select_normal);
-                    mSelectedId.remove(audioBean.getId());
+                    mSelectedAudios.remove(audioBean.getId());
                 } else {
                     selected = true;
                     mBinding.ivSelectState.setImageResource(R.mipmap.select_selected);
-                    mSelectedId.add(audioBean.getId());
+                    mSelectedAudios.add(audioBean);
                 }
             });
         }

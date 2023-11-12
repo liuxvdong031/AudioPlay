@@ -9,7 +9,7 @@ import android.text.TextUtils;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.util.Constants;
@@ -24,9 +24,9 @@ import java.util.Set;
  */
 
 public class MusicPlayer {
-    private MediaPlayer mMediaPlayer;
-    private Context mContext;
-    private ArrayList<AudioBean> mAudioList;
+    private final MediaPlayer mMediaPlayer;
+    private final Context mContext;
+    private final ArrayList<AudioBean> mAudioList;
     private int mCurrentPosition;
     private int mCurrentModel = 2;
 
@@ -86,7 +86,7 @@ public class MusicPlayer {
     /**
      * 手动点击播放上一首
      */
-    public void pre() {
+    public void previous() {
         switch (mCurrentModel) {
             case MODEL_SINGLE:
             case MODEL_LOOP:
@@ -252,7 +252,7 @@ public class MusicPlayer {
         this.lyricsListener = lyricsListener;
     }
 
-    public void collectCurrentAudio(AudioDatabase database) {
+    public void collectCurrentAudio(AppDataBase database) {
         if (mAudioBean != null && database != null) {
             DbUtils.insertAudio(database,mAudioBean);
         }

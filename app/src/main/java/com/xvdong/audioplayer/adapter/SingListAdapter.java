@@ -63,7 +63,7 @@ public class SingListAdapter extends RecyclerView.Adapter<SingListAdapter.ViewHo
 
     private void renameSingList(String text, SingListBean singListBean) {
         singListBean.setName(text);
-        DbUtils.getSingListDataBase(mContext, database -> {
+        DbUtils.getAppDataBase(mContext, database -> {
             DbUtils.insertSingList(database,singListBean);
         });
     }

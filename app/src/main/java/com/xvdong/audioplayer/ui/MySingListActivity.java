@@ -9,8 +9,8 @@ import com.lxj.xpopup.XPopup;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.SingListAdapter;
 import com.xvdong.audioplayer.databinding.ActivityMySingListMainBinding;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
-import com.xvdong.audioplayer.db.SingListDatabase;
 import com.xvdong.audioplayer.model.SingListBean;
 
 import java.util.List;
@@ -25,7 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 public class MySingListActivity extends AppCompatActivity {
 
     private ActivityMySingListMainBinding mBinding;
-    private SingListDatabase mListDatabase;
+    private AppDataBase mListDatabase;
 
     @SuppressLint("CheckResult")
     @Override
@@ -36,7 +36,7 @@ public class MySingListActivity extends AppCompatActivity {
     }
 
     private void initDatabase() {
-        DbUtils.getSingListDataBase(this, database -> {
+        DbUtils.getAppDataBase(this, database -> {
             mListDatabase = database;
             initData();
         });

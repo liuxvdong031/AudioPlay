@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.databinding.ItemSingerBinding;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 
 import java.util.List;
@@ -22,10 +22,10 @@ import androidx.recyclerview.widget.RecyclerView;
 public class SingerAdapter extends RecyclerView.Adapter<SingerAdapter.ViewHolder> {
 
     private List<String> mSingers;
-    private AudioDatabase mDatabase;
+    private AppDataBase mDatabase;
     private  onItemClickListener mItemClickListener;
 
-    public SingerAdapter(AudioDatabase database, List<String> singers ,onItemClickListener listener) {
+    public SingerAdapter(AppDataBase database, List<String> singers , onItemClickListener listener) {
         mDatabase = database;
         mSingers = singers;
         mItemClickListener = listener;
@@ -61,7 +61,7 @@ public class SingerAdapter extends RecyclerView.Adapter<SingerAdapter.ViewHolder
         }
 
         @SuppressLint("CheckResult")
-        public void bind(AudioDatabase database, String singer) {
+        public void bind(AppDataBase database, String singer) {
             mBinding.btnSingerName.setText(singer);
             DbUtils.getAudiosByArtist(database,singer,data -> {
                 mBinding.tvMusicCount.setText(data.size() + "首歌曲");

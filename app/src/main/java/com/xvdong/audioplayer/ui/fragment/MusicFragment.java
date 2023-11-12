@@ -1,6 +1,5 @@
 package com.xvdong.audioplayer.ui.fragment;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,7 +9,7 @@ import android.view.ViewGroup;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.FragmentMusicBinding;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.ui.AudioListLocalActivity;
@@ -31,25 +30,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 public class MusicFragment extends Fragment {
 
-    private AudioDatabase mDatabase;
+    private AppDataBase mDatabase;
     private FragmentMusicBinding mBinding;
     private MainActivity mActivity;
     private AudioListAdapter mAudioListAdapter;
-
-    @SuppressLint("CheckResult")
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mActivity = (MainActivity) getActivity();
-        // 初始化数据库
-        initDatabase();
-    }
-
-    private void initDatabase() {
-        DbUtils.getAudioDataBase(mActivity, database -> {
-            mDatabase = database;
-        });
-    }
 
     @Nullable
     @Override
@@ -61,18 +45,21 @@ public class MusicFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initData();
+        mActivity = (MainActivity) getActivity();
+        // 初始化数据库
+        initDatabase();
         initListener();
     }
 
+    private void initDatabase() {
+        DbUtils.getAppDataBase(mActivity, database -> {
+            mDatabase = database;
+            initData();
+        });
+    }
 
-    @SuppressLint("CheckResult")
     private void initData() {
-        if (mDatabase != null) {
-            DbUtils.getAllAudio(mDatabase, this::changeUI);
-        }else {
-            mBinding.rlEmpty.postDelayed(() -> initData(),500);
-        }
+        DbUtils.getAllAudio(mDatabase, this::changeUI);
     }
 
     private void changeUI(List<AudioBean> list) {

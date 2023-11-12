@@ -1,4 +1,4 @@
-package com.xvdong.audioplayer.db;
+package com.xvdong.audioplayer.interfaces;
 
 /**
  * Created by xvDong on 2023/11/7.

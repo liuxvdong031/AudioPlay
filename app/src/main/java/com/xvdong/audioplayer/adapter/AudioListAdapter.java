@@ -17,7 +17,7 @@ import android.widget.TextView;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.FileUtils;
 import com.xvdong.audioplayer.R;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.ui.AudioDetailActivity;
@@ -42,10 +42,10 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
 
     private ArrayList<AudioBean> mDataList;
     private Context mContext;
-    private AudioDatabase mDatabase;
+    private AppDataBase mDatabase;
     private boolean mShowAction;
 
-    public AudioListAdapter(Context context, ArrayList<AudioBean> dataList, AudioDatabase database, boolean showAction) {
+    public AudioListAdapter(Context context, ArrayList<AudioBean> dataList, AppDataBase database, boolean showAction) {
         this.mContext = context;
         this.mDataList = dataList;
         this.mDatabase = database;

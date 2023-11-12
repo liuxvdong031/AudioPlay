@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.FragmentCollectionBinding;
-import com.xvdong.audioplayer.db.AudioDatabase;
+import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.ui.MainActivity;
@@ -22,8 +22,6 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by xvDong on 2023/10/27.
@@ -32,24 +30,9 @@ import io.reactivex.schedulers.Schedulers;
 public class CollectionFragment extends Fragment {
 
 
-    private AudioDatabase mDatabase;
+    private AppDataBase mDatabase;
     private FragmentCollectionBinding mBinding;
     private MainActivity mActivity;
-    private AudioListAdapter mAudioListAdapter;
-
-    @SuppressLint("CheckResult")
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mActivity = (MainActivity) getActivity();
-        // 初始化数据库
-        AudioDatabase.getInstance(getActivity())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(audioDatabase -> {
-                    mDatabase = audioDatabase;
-                });
-    }
 
     @Nullable
     @Override
@@ -61,16 +44,20 @@ public class CollectionFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initData();
+        mActivity = (MainActivity) getActivity();
+        initDataBase();
+    }
+
+    private  void initDataBase(){
+        DbUtils.getAppDataBase(mActivity,database -> {
+            mDatabase = database;
+            initData();
+        });
     }
 
     @SuppressLint("CheckResult")
     private void initData() {
-        if (mDatabase != null) {
-            DbUtils.getAllCollectedMusic(mDatabase,this::changeUI);
-        }else {
-            mBinding.rlEmpty.postDelayed(() -> initData(),500);
-        }
+        DbUtils.getAllCollectedMusic(mDatabase,this::changeUI);
     }
 
     private void changeUI(List<AudioBean> list) {
@@ -80,9 +67,9 @@ public class CollectionFragment extends Fragment {
         } else {
             mBinding.audioList.setVisibility(View.VISIBLE);
             mBinding.rlEmpty.setVisibility(View.GONE);
-            mAudioListAdapter = new AudioListAdapter(mActivity, (ArrayList<AudioBean>) list, mDatabase,false);
+            AudioListAdapter audioListAdapter = new AudioListAdapter(mActivity, (ArrayList<AudioBean>) list, mDatabase, false);
             mBinding.audioList.setLayoutManager(new LinearLayoutManager(mActivity));
-            mBinding.audioList.setAdapter(mAudioListAdapter);
+            mBinding.audioList.setAdapter(audioListAdapter);
         }
     }
 
