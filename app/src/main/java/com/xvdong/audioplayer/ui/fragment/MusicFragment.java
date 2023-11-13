@@ -1,5 +1,6 @@
 package com.xvdong.audioplayer.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -35,6 +36,22 @@ public class MusicFragment extends Fragment {
     private MainActivity mActivity;
     private AudioListAdapter mAudioListAdapter;
 
+    @SuppressLint("CheckResult")
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mActivity = (MainActivity) getActivity();
+        // 初始化数据库
+        initDatabase();
+    }
+
+    private void initDatabase() {
+        DbUtils.getAppDataBase(mActivity, database -> {
+            mDatabase = database;
+            initData();
+        });
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -45,17 +62,7 @@ public class MusicFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mActivity = (MainActivity) getActivity();
-        // 初始化数据库
-        initDatabase();
         initListener();
-    }
-
-    private void initDatabase() {
-        DbUtils.getAppDataBase(mActivity, database -> {
-            mDatabase = database;
-            initData();
-        });
     }
 
     private void initData() {

@@ -5,7 +5,6 @@ import android.content.Context;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.xvdong.audioplayer.interfaces.OnDataListener;
-import com.xvdong.audioplayer.interfaces.OnDatabaseListener;
 import com.xvdong.audioplayer.model.AudioBean;
 import com.xvdong.audioplayer.model.Relationship;
 import com.xvdong.audioplayer.model.SingListBean;

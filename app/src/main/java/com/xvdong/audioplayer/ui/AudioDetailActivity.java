@@ -464,21 +464,25 @@ public class AudioDetailActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
-            case KeyEvent.KEYCODE_HEADSETHOOK:
-                ToastUtils.showShort("keyEvent: KEYCODE_HEADSETHOOK  " + "keyCode = "+ keyCode);
-                return true;
-            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE://暂停
-                if (mMusicPlayer.isPlaying()){
-                    mMusicPlayer.pause();
-                }else {
+            case KeyEvent.KEYCODE_MEDIA_PLAY://播放
+                if (mMusicPlayer != null) {
                     mMusicPlayer.resume();
                 }
                 return true;
+            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE://暂停
+                if (mMusicPlayer != null) {
+                    mMusicPlayer.pause();
+                }
+                return true;
             case KeyEvent.KEYCODE_MEDIA_PREVIOUS://上一曲
-                mMusicPlayer.next();
+                if (mMusicPlayer != null) {
+                    mMusicPlayer.next();
+                }
                 return true;
             case KeyEvent.KEYCODE_MEDIA_NEXT://下一曲
-                mMusicPlayer.previous();
+                if (mMusicPlayer != null) {
+                    mMusicPlayer.previous();
+                }
                 return true;
             default:
                 return super.onKeyDown(keyCode, event);
