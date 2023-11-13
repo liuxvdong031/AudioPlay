@@ -14,11 +14,13 @@ import com.hjq.bar.OnTitleBarListener;
 import com.hjq.bar.TitleBar;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
+import com.xvdong.audioplayer.bus.RxBus;
 import com.xvdong.audioplayer.databinding.ActivityAudioListBinding;
 import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.AudioDao;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
+import com.xvdong.audioplayer.model.event.AudioEvent;
 import com.xvdong.audioplayer.util.LxdPermissionUtils;
 
 import java.util.ArrayList;
@@ -127,6 +129,7 @@ public class AudioListLocalActivity extends AppCompatActivity {
                             }
                         });
             }
+            RxBus.getDefault().postSticky(new AudioEvent());
         }
     }
 }

@@ -147,9 +147,6 @@ public class AudioListAdapter extends RecyclerView.Adapter<AudioListAdapter.Audi
     public void setNewData(List<AudioBean> newData) {
         // 使用 DiffUtil 计算差异
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new AudioDiffCallback(mDataList, newData));
-        // 更新数据源
-        mDataList.clear();
-        mDataList.addAll(newData);
         // 将差异应用到 Adapter
         diffResult.dispatchUpdatesTo(this);
     }

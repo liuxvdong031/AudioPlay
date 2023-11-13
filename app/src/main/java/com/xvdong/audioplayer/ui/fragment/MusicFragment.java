@@ -9,10 +9,13 @@ import android.view.ViewGroup;
 
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
+import com.xvdong.audioplayer.bus.RxBus;
+import com.xvdong.audioplayer.bus.RxSubscriptions;
 import com.xvdong.audioplayer.databinding.FragmentMusicBinding;
 import com.xvdong.audioplayer.db.AppDataBase;
 import com.xvdong.audioplayer.db.DbUtils;
 import com.xvdong.audioplayer.model.AudioBean;
+import com.xvdong.audioplayer.model.event.AudioEvent;
 import com.xvdong.audioplayer.ui.AudioListLocalActivity;
 import com.xvdong.audioplayer.ui.MainActivity;
 
@@ -24,6 +27,8 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 
 /**
  * Created by xvDong on 2023/10/27.
@@ -35,6 +40,7 @@ public class MusicFragment extends Fragment {
     private FragmentMusicBinding mBinding;
     private MainActivity mActivity;
     private AudioListAdapter mAudioListAdapter;
+    private Disposable mRxBus;
 
     @SuppressLint("CheckResult")
     @Override
@@ -89,5 +95,25 @@ public class MusicFragment extends Fragment {
         mBinding.rlEmpty.setOnClickListener(v -> {
             startActivity(new Intent(mActivity, AudioListLocalActivity.class));
         });
+        //本地音乐搜索完成之后,刷新新的列表数据
+        mRxBus = RxBus.getDefault()
+                .toObservableSticky(AudioEvent.class)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(bean -> {
+                    DbUtils.getAllAudio(mDatabase,data -> {
+                        if (mAudioListAdapter != null){
+                            mAudioListAdapter.setNewData(data);
+                        }
+                    });
+                });
+        RxSubscriptions.add(mRxBus);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mRxBus != null){
+            RxSubscriptions.remove(mRxBus);
+        }
     }
 }
