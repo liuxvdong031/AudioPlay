@@ -7,6 +7,8 @@ import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hjq.bar.OnTitleBarListener;
+import com.hjq.bar.TitleBar;
 import com.xvdong.audioplayer.R;
 import com.xvdong.audioplayer.adapter.AudioListAdapter;
 import com.xvdong.audioplayer.databinding.ActivityAudioOnLineBinding;
@@ -41,6 +43,16 @@ public class AudioOnLineActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_audio_on_line);
         initView();
+        initListener();
+    }
+
+    private void initListener() {
+        mBinding.toolbar.setOnTitleBarListener(new OnTitleBarListener() {
+            @Override
+            public void onLeftClick(TitleBar titleBar) {
+                finish();
+            }
+        });
     }
 
     private void initView() {
