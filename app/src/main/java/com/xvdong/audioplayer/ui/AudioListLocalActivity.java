@@ -123,8 +123,8 @@ public class AudioListLocalActivity extends AppCompatActivity {
                 AudioDao audioDao = mDatabase.mAudioDao();
                 audioDao.doesIdExist(audioFile.getId())
                         .subscribeOn(Schedulers.computation())
-                        .subscribe(aBoolean -> {
-                            if (!aBoolean) {
+                        .subscribe(exist -> {
+                            if (!exist) {
                                 DbUtils.insertAudio(mDatabase, audioFile);
                             }
                         });

@@ -21,6 +21,11 @@ import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+/**
+ * 一个页面两个功能
+ * 歌手列表
+ * 歌手歌曲列表
+ */
 public class SingerListActivity extends AppCompatActivity {
 
     private ActivitySingerListBinding mBinding;
@@ -86,7 +91,7 @@ public class SingerListActivity extends AppCompatActivity {
     private void updateAdapter(String singer, List<AudioBean> list) {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getBaseContext(), RecyclerView.VERTICAL, false);
         mBinding.rvSinger.setLayoutManager(layoutManager);
-        AudioListAdapter audioListAdapter = new AudioListAdapter(this, (ArrayList<AudioBean>) list,mDatabase,false);
+        AudioListAdapter audioListAdapter = new AudioListAdapter(this, (ArrayList<AudioBean>) list,mDatabase,true);
         mBinding.rvSinger.setAdapter(audioListAdapter);
         mBinding.toolbar.setTitle(singer);
         mBinding.toolbar.setOnTitleBarListener(new OnTitleBarListener() {
