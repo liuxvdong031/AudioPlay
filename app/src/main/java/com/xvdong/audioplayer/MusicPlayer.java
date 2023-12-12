@@ -2,7 +2,6 @@ package com.xvdong.audioplayer;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -42,7 +41,6 @@ public class MusicPlayer {
         this.mAudioList = audioList;
         this.mCurrentPosition = currentPosition;
         mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mMediaPlayer.setOnCompletionListener(mp -> {
             if (!mPlayException) {
                 autoPlayNext();
@@ -230,10 +228,15 @@ public class MusicPlayer {
     }
 
     public boolean isPlaying() {
-        if (mMediaPlayer != null) {
-            return mMediaPlayer.isPlaying();
+        try {
+            if (mMediaPlayer != null) {
+                return mMediaPlayer.isPlaying();
+            }
+            return false;
+        } catch (IllegalStateException e) {
+            LogUtils.d("MediaPlayer 没有初始化setDataSource  prepare");
+            return false;
         }
-        return false;
     }
 
     public String getCurrentSongName() {

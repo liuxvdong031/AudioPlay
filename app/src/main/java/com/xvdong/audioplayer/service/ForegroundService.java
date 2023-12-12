@@ -37,7 +37,9 @@ public class ForegroundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        createNotification(intent);
+        if (intent != null){
+            createNotification(intent);
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 

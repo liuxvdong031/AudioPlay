@@ -181,26 +181,29 @@ public class AudioDetailActivity extends AppCompatActivity {
         audioManager.requestAudioFocus(audioListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
     }
 
+    private boolean isFirstPlay = true;
 
     //监听耳机插拔的广播
     private final BroadcastReceiver mHeadsetReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
+            if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
                 int state = intent.getIntExtra("state", -1);
                 if (state == 0) {// 耳机已拨出
-                    if (mMusicPlayer.isPlaying()) {
+                    if (isFirstPlay) {
+                        isFirstPlay = false;
+                    } else if (mMusicPlayer.isPlaying()) {
                         mMusicPlayer.pause();
+                        mBinding.play.setImageResource(R.mipmap.play);
                     }
-                    mBinding.play.setImageResource(R.mipmap.play);
                 } else if (state == 1) {// 耳机已插入
                     mMusicPlayer.resume();
                     mBinding.play.setImageResource(R.mipmap.pause);
                 }
             }
 
-            if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
+            if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
                 String phoneState = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
                 // 电话响铃，暂停音乐播放操作
                 if (phoneState != null && phoneState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {

@@ -56,6 +56,9 @@ public class ProfileFragment extends Fragment {
         mBinding.searchNetMusic.setOnClickListener(v -> {
             startActivity(new Intent(getActivity(), AudioOnLineActivity.class));
         });
+        mBinding.btnTest.setOnClickListener(v -> {
+            startActivity(new Intent(getActivity(), AudioOnLineActivity.class));
+        });
     }
 
 }
